@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | AI Study Assistant{% endblock %}
+
+{% block extra_head %}
+<style>
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="dashboard-container">
+    
+    <!-- Main Column: Documents Grid & Uploads -->
+    <div class="main-column">
+        
+        <!-- API Key Status Notification Banner -->
+        {% if not has_api_key %}
+            <div class="alert alert-error glass-panel" style="border-left: 4px solid var(--warning); margin-bottom: 2rem;">
+                <span>⚠️</span>
+                <div>
+                    <strong>Action Required:</strong> Your Gemini API key is not configured yet! AI features (Summaries, Chat, Quizzes, Flashcards) will not work. 
+                    Please set your <code>GEMINI_API_KEY</code> in the <code>.env</code> file in your project directory and restart the server.
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Study Materials Section -->
+        <div>
+            <div class="section-header">
+                <h3>My Study Materials</h3>
+                <a href="#upload-section" class="btn btn-primary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    + New Material
+                </a>
+            </div>
+
+            {% if documents %}
+                <div class="document-grid">
+                    {% for doc in documents %}
+                        <div class="doc-card glass-panel glass-interactive">
+                            <div class="doc-info">
+                                <h4 class="doc-title" title="{{ doc.title }}">{{ doc.title }}</h4>
+                                <div class="doc-meta">
+                                    <span>📅 {{ doc.uploaded_at|date:"M d, Y" }}</span>
+                                    {% if doc.file %}
+                                        <span>• 📁 PDF</span>
+                                    {% else %}
+                                        <span>• 📝 Notes</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="doc-actions">
+                                <a href="{% url 'document_detail' doc.id %}" class="btn btn-cyan btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                    Study Now ⚡
+                                </a>
+                                <a href="{% url 'delete_document' doc.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this document? All chats, quizzes, and flashcards will be lost.')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="glass-panel empty-state">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"></path>
+                    </svg>
+                    <h4>No study materials uploaded yet</h4>
+                    <p>Upload revision notes or textbook PDFs to activate the AI study engine!</p>
+                    <a href="#upload-section" class="btn btn-primary btn-sm">Upload Your First File</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- File & Voice Upload Section -->
+        <div id="upload-section" class="glass-panel upload-panel" style="margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.8rem;">
+                <h3 style="margin: 0; font-size: 1.25rem;">Add Study Material</h3>
+                <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 10px; border: 1px solid var(--glass-border);">
+                    <button type="button" class="btn btn-sm" id="tab-doc-btn" onclick="toggleUploadTab('doc')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: var(--primary); color: #ffffff;">
+                        📄 Docs / Text
+                    </button>
+                    <button type="button" class="btn btn-sm" id="tab-voice-btn" onclick="toggleUploadTab('voice')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: transparent; color: var(--text-muted);">
+                        🎤 AI Voice Note
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Documents & Plain Text -->
+            <div id="upload-doc-tab">
+                <form action="{% url 'upload_document' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="title" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Document Title</label>
+                        <input type="text" name="title" id="title" class="form-input" placeholder="e.g. Operating Systems Chapter 3, Compiler Design Notes" required>
+                    </div>
+
+                    <!-- Tabbed Option 1: File Upload -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option A: Upload PDF Note</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('file-input').click()">
+                            <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto 0.5rem auto;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <span id="file-label" style="font-weight: 600; color: #ffffff;">Drag & Drop or Click to browse</span>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Supports PDF or TXT up to 10MB</p>
+                            <input type="file" name="file" id="file-input" class="file-input-hidden" accept=".pdf,.txt" onchange="updateFileLabel()">
+                        </div>
+                    </div>
+
+                    <div class="upload-option-divider">OR</div>
+
+                    <!-- Option B: Paste Notes -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="notes_text" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option B: Paste Study Notes Text</label>
+                        <textarea name="notes_text" id="notes_text" rows="6" class="form-input" placeholder="Paste your study notes, definitions, or code snippets directly here if you don't have a PDF file..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        Analyze with AI 🧠⚡
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab 2: Voice Notes Dictation & Upload -->
+            <div id="upload-voice-tab" style="display: none;">
+                <form action="{% url 'voice_upload' %}" method="POST" enctype="multipart/form-data" id="voice-note-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="voice_title" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Voice Note Title</label>
+                        <input type="text" name="title" id="voice_title" class="form-input" placeholder="e.g. Lecture on Neural Networks, Oral Revision Notes">
+                    </div>
+
+                    <!-- Voice Recording Workspace -->
+                    <div class="glass-panel" style="padding: 1.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; margin-bottom: 1.5rem; text-align: center; position: relative; overflow: hidden;">
+                        
+                        <!-- Pulse mic and sound wave animation wrapper -->
+                        <div style="height: 90px; display: flex; align-items: center; justify-content: center; position: relative;">
+                            <!-- Pulsing record background -->
+                            <div id="mic-pulse-ring" style="position: absolute; width: 70px; height: 70px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); display: none; animation: pulse 1.5s infinite;"></div>
+                            
+                            <!-- Microphone toggle button -->
+                            <button type="button" id="record-toggle-btn" class="btn" style="width: 60px; height: 60px; border-radius: 50%; padding: 0; background: rgba(255,255,255,0.05); border: 2px solid var(--glass-border); color: #ffffff; z-index: 10; transition: var(--transition);" onclick="toggleRecording()">
+                                <svg id="mic-svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div id="recording-status-text" style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            Click microphone to start dictating
+                        </div>
+
+                        <!-- Real-time canvas visualizer -->
+                        <canvas id="visualizer-canvas" width="400" height="50" style="width: 100%; height: 50px; background: rgba(0, 0, 0, 0.1); border-radius: 8px; display: none; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.03);"></canvas>
+                        
+                        <!-- Transcribed text display -->
+                        <div class="form-group" style="text-align: left;">
+                            <label for="transcribed_text" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem;">Live Transcription</label>
+                            <textarea name="transcribed_text" id="transcribed_text" rows="5" class="form-input" placeholder="Transcribed text will appear here in real-time as you speak... You can edit it if needed."></textarea>
+                        </div>
+
+                        <!-- Reset / Manual Audio File Upload Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="resetTranscription()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                Clear text
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAudioUploadZone()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                📁 Upload Audio File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Option D: Upload Audio file zone -->
+                    <div id="audio-file-upload-zone" style="display: none; margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Upload Pre-Recorded Audio File</label>
+                        <div class="file-drop-zone" onclick="document.getElementById('audio-file-input').click()" style="padding: 1.5rem;">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto 0.5rem auto;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"></path>
+                            </svg>
+                            <span id="audio-file-label" style="font-weight: 600; color: #ffffff;">Click to select audio (WAV, MP3, M4A, WEBM)</span>
+                            <input type="file" name="audio" id="audio-file-input" class="file-input-hidden" accept="audio/*" onchange="updateAudioFileLabel()">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan" style="width: 100%;" id="voice-submit-btn">
+                        Analyze Voice Note 🧠⚡
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Side Column: Recent Activity Feed & Stats -->
+    <div class="side-column">
+        
+        <!-- MCA AI Power Stats Panel -->
+        <div class="glass-panel" style="padding: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem;">MCA AI Engine Stats</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">Total Materials</span>
+                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">{{ documents.count }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">Model Running</span>
+                    <span style="font-size: 0.9rem; font-weight: 700; color: var(--secondary);">Gemini 2.5 Flash</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">DB Engine</span>
+                    <span style="font-size: 0.9rem; font-weight: 700; color: #f59e0b;">MySQL / MariaDB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities Panel -->
+        <div class="glass-panel" style="padding: 1.5rem;">
+            <h4 style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem;">Recent Quizzes & History</h4>
+            
+            {% if recent_quizzes or recent_chats %}
+                <div class="activity-list">
+                    {% for quiz in recent_quizzes %}
+                        <div class="activity-item">
+                            <div>
+                                <div class="activity-title">MCQ Quiz Generated</div>
+                                <div class="activity-sub">{{ quiz.document.title|truncatechars:20 }}</div>
+                            </div>
+                            <a href="{% url 'document_quiz' quiz.document.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Retake</a>
+                        </div>
+                    {% endfor %}
+
+                    {% for chat in recent_chats %}
+                        <div class="activity-item">
+                            <div>
+                                <div class="activity-title">Q&A Chat Question</div>
+                                <div class="activity-sub">Q: "{{ chat.question|truncatechars:20 }}"</div>
+                            </div>
+                            <a href="{% url 'document_detail' chat.document.id %}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">View</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="font-size: 0.9rem; color: var(--text-muted); text-align: center; padding: 1rem 0;">
+                    No recent activities. Upload material above to generate summaries and flashcards!
+                </p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateFileLabel() {
+        const input = document.getElementById('file-input');
+        const label = document.getElementById('file-label');
+        if (input.files.length > 0) {
+            label.innerText = `Selected file: ${input.files[0].name}`;
+            label.style.color = 'var(--secondary)';
+        } else {
+            label.innerText = 'Drag & Drop or Click to browse';
+            label.style.color = '#ffffff';
+        }
+    }
+
+    // Tab switching for Upload Area
+    function toggleUploadTab(tabType) {
+        const docTab = document.getElementById('upload-doc-tab');
+        const voiceTab = document.getElementById('upload-voice-tab');
+        const docBtn = document.getElementById('tab-doc-btn');
+        const voiceBtn = document.getElementById('tab-voice-btn');
+        
+        if (tabType === 'doc') {
+            docTab.style.display = 'block';
+            voiceTab.style.display = 'none';
+            docBtn.style.background = 'var(--primary)';
+            docBtn.style.color = '#ffffff';
+            voiceBtn.style.background = 'transparent';
+            voiceBtn.style.color = 'var(--text-muted)';
+            stopSpeechRecognition();
+        } else {
+            docTab.style.display = 'none';
+            voiceTab.style.display = 'block';
+            voiceBtn.style.background = 'var(--primary)';
+            voiceBtn.style.color = '#ffffff';
+            docBtn.style.background = 'transparent';
+            docBtn.style.color = 'var(--text-muted)';
+        }
+    }
+
+    function toggleAudioUploadZone() {
+        const zone = document.getElementById('audio-file-upload-zone');
+        const txt = document.getElementById('transcribed_text');
+        if (zone.style.display === 'none') {
+            zone.style.display = 'block';
+            txt.required = false;
+        } else {
+            zone.style.display = 'none';
+            if (!txt.value.trim()) {
+                txt.required = true;
+            }
+        }
+    }
+
+    function resetTranscription() {
+        document.getElementById('transcribed_text').value = '';
+    }
+
+    function updateAudioFileLabel() {
+        const input = document.getElementById('audio-file-input');
+        const label = document.getElementById('audio-file-label');
+        if (input.files.length > 0) {
+            label.innerText = `Selected audio: ${input.files[0].name}`;
+            label.style.color = 'var(--secondary)';
+            const titleInput = document.getElementById('voice_title');
+            if (!titleInput.value) {
+                const name = input.files[0].name.replace(/\.[^/.]+$/, "");
+                titleInput.value = name;
+            }
+        } else {
+            label.innerText = 'Click to select audio (WAV, MP3, M4A, WEBM)';
+            label.style.color = '#ffffff';
+        }
+    }
+
+    // Speech Recognition API Wrapper
+    let recognition = null;
+    let isRecording = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            const txtArea = document.getElementById('transcribed_text');
+            if (finalTranscript) {
+                txtArea.value += finalTranscript;
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            if (event.error === 'not-allowed') {
+                alert('Microphone access was denied. Please check your browser permissions.');
+            }
+            stopSpeechRecognition();
+        };
+
+        recognition.onend = function() {
+            if (isRecording) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    stopSpeechRecognition();
+                }
+            }
+        };
+    }
+
+    function toggleRecording() {
+        if (!recognition) {
+            alert("Your browser does not support the Web Speech API for real-time dictation. Please use the 'Upload Audio File' option to upload voice recordings directly!");
+            return;
+        }
+
+        const btn = document.getElementById('record-toggle-btn');
+        const pulse = document.getElementById('mic-pulse-ring');
+        const statusText = document.getElementById('recording-status-text');
+        const canvas = document.getElementById('visualizer-canvas');
+
+        if (!isRecording) {
+            isRecording = true;
+            try {
+                recognition.start();
+                btn.style.background = 'var(--error)';
+                btn.style.borderColor = 'var(--error)';
+                pulse.style.display = 'block';
+                statusText.innerText = 'Listening... Speak clearly into your microphone.';
+                statusText.style.color = 'var(--error)';
+                
+                canvas.style.display = 'block';
+                startVisualizerAnimation();
+            } catch (e) {
+                console.error("Failed to start speech recognition:", e);
+                isRecording = false;
+            }
+        } else {
+            stopSpeechRecognition();
+        }
+    }
+
+    function stopSpeechRecognition() {
+        isRecording = false;
+        if (recognition) {
+            try {
+                recognition.stop();
+            } catch(e) {}
+        }
+        
+        const btn = document.getElementById('record-toggle-btn');
+        const pulse = document.getElementById('mic-pulse-ring');
+        const statusText = document.getElementById('recording-status-text');
+        const canvas = document.getElementById('visualizer-canvas');
+        
+        btn.style.background = 'rgba(255,255,255,0.05)';
+        btn.style.borderColor = 'var(--glass-border)';
+        pulse.style.display = 'none';
+        statusText.innerText = 'Dictation paused. Click mic to resume.';
+        statusText.style.color = 'var(--text-muted)';
+        
+        canvas.style.display = 'none';
+        stopVisualizerAnimation();
+    }
+
+    let visualizerInterval = null;
+    function startVisualizerAnimation() {
+        const canvas = document.getElementById('visualizer-canvas');
+        const ctx = canvas.getContext('2d');
+        let x = 0;
+        
+        stopVisualizerAnimation();
+        
+        visualizerInterval = setInterval(() => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            x += 0.15;
+            for (let i = 0; i < canvas.width; i++) {
+                const y = canvas.height / 2 + 
+                          Math.sin(i * 0.05 + x) * 12 * Math.sin(x * 0.5) + 
+                          Math.sin(i * 0.1 - x) * 4;
+                if (i === 0) {
+                    ctx.moveTo(i, y);
+                } else {
+                    ctx.lineTo(i, y);
+                }
+            }
+            ctx.stroke();
+        }, 30);
+    }
+    
+    function stopVisualizerAnimation() {
+        if (visualizerInterval) {
+            clearInterval(visualizerInterval);
+            visualizerInterval = null;
+        }
+    }
+
+    // Set voice submit button loading state
+    document.getElementById('voice-note-form').addEventListener('submit', function() {
+        const submitBtn = document.getElementById('voice-submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Transcribing and Analyzing with AI... 🧠⚡';
+    });
+</script>
+{% endblock %}
