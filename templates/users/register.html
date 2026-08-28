@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | AI Study Assistant{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card glass-panel">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Start summarizing notes & generating quizzes in seconds</p>
+        </div>
+        
+        <form action="{% url 'register' %}" method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <input type="{% if 'password' in field.name %}password{% elif 'email' in field.name %}email{% else %}text{% endif %}" 
+                           name="{{ field.name }}" 
+                           id="{{ field.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="Enter {{ field.label|lower }}"
+                           required>
+                    {% if field.help_text %}
+                        <small style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                Get Started ⚡
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
