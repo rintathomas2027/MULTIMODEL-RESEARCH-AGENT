@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Study Assistant - MCA Suite{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Premium Glassmorphic Navbar -->
+    <nav class="navbar">
+        <a href="{% url 'dashboard' %}" class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">AI Study Assistant</span>
+        </a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <span class="nav-link" style="color: var(--text-main);">Hi, <strong>{{ user.username }}</strong></span>
+                <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'research_portal' %}" class="nav-link" style="color: var(--secondary); font-weight: 700;">Research Portal ⭐</a>
+                <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-link">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Message Alert Notifications System -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %} glass-panel">
+                    <span>
+                        {% if message.tags == 'success' %}
+                            ✅
+                        {% elif message.tags == 'error' %}
+                            ❌
+                        {% else %}
+                            ℹ️
+                        {% endif %}
+                    </span>
+                    <div>{{ message }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content Block -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 AI Study Assistant. MCA Capstone Portfolio Project.</p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
