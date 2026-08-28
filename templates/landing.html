@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResearchSphere AI - Intelligent Collaborative Research Platform</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f3ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+              950: '#1e1b4b',
+            },
+            cyanGlow: '#06b6d4',
+            purpleGlow: '#a855f7',
+            emeraldGlow: '#10b981',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    
+    .glass-card {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px 0 rgba(99, 102, 241, 0.2);
+    }
+
+    .glass-input {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f9fafb;
+    }
+    .glass-input:focus {
+      border-color: #6366f1;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating-badge {
+      animation: float 4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  {% verbatim %}
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function LandingApp() {
+      const [view, setView] = useState("landing"); // "landing" | "login" | "register"
+      const [selectedRole, setSelectedRole] = useState("Student");
+
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      const handleAuthSubmit = (e) => {
+        e.preventDefault();
+        // Redirect to main workspace dashboard
+        window.location.href = "/";
+      };
+
+      return (
+        <div className="min-h-screen bg-[#0b0f19] text-gray-100 flex flex-col selection:bg-brand-500 selection:text-white">
+          {/* Header Bar */}
+          <header className="sticky top-0 z-50 glass-card bg-[#0f172a]/90 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setView("landing")}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/30">
+                <i data-lucide="brain-circuit" className="w-6 h-6 text-white"></i>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-brand-200 to-cyan-300">
+                  ResearchSphere AI
+                </h1>
+                <p className="text-[10px] text-gray-400 font-mono">LLM + RAG + KNOWLEDGE GRAPH</p>
+              </div>
+            </div>
+
+            {/* Nav links */}
+            <nav className="hidden md:flex items-center space-x-8 text-xs font-medium text-gray-300">
+              <a href="#features" onClick={() => setView("landing")} className="hover:text-brand-300 transition">Features</a>
+              <a href="#roles" onClick={() => setView("landing")} className="hover:text-brand-300 transition">User Roles</a>
+              <a href="#graph" onClick={() => setView("landing")} className="hover:text-brand-300 transition">Knowledge Graph</a>
+              <a href="#modules" onClick={() => setView("landing")} className="hover:text-brand-300 transition">15 Mini-Modules</a>
+            </nav>
+
+            {/* Auth Action Buttons */}
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => setView("login")} 
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${view === 'login' ? 'bg-brand-600 text-white shadow-lg' : 'bg-gray-900 border border-gray-800 text-gray-300 hover:text-white'}`}
+              >
+                Sign In (JWT)
+              </button>
+              <button 
+                onClick={() => setView("register")} 
+                className={`px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white shadow-lg shadow-brand-500/25 transition`}
+              >
+                Register Account
+              </button>
+              <a 
+                href="/" 
+                className="hidden sm:flex px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition items-center space-x-1.5"
+              >
+                <span>Launch App</span>
+                <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </header>
+
+          {/* Body Content */}
+          <main className="flex-1">
+            {view === "landing" ? (
+              <LandingView onGetStarted={() => setView("register")} onLogin={() => setView("login")} />
+            ) : (
+              <AuthView view={view} setView={setView} selectedRole={selectedRole} setSelectedRole={setSelectedRole} onSubmit={handleAuthSubmit} />
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-gray-800 bg-[#070a12] py-8 px-6 text-center text-xs text-gray-500">
+            <p>© 2026 ResearchSphere AI — Mini Project: Intelligent Collaborative Research Assistant using LLM, RAG & Knowledge Graph.</p>
+            <p className="mt-1 text-[11px] font-mono text-gray-600">Built with React 18, Django, Neo4j & Google Gemini API.</p>
+          </footer>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // LANDING PAGE VIEW COMPONENT
+    // ==========================================
+    function LandingView({ onGetStarted, onLogin }) {
+      return (
+        <div className="space-y-24 py-12 px-6 max-w-7xl mx-auto">
+          {/* Hero Section */}
+          <section className="text-center space-y-8 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-950/80 border border-brand-500/30 text-brand-300 text-xs font-mono floating-badge">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>Next-Gen Academic AI Workspace</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+              An Intelligent Collaborative Research Assistant using <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-cyan-300 to-emerald-400">LLM, RAG & Knowledge Graph</span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              Transform unstructured research papers into interactive Neo4j Knowledge Graphs. Ground AI assistant responses with Retrieval-Augmented Generation, collaborate with supervisors, and master your viva defense.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+              <button 
+                onClick={onGetStarted}
+                className="px-8 py-3.5 bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white font-bold text-xs rounded-xl shadow-xl shadow-brand-500/30 transition flex items-center space-x-2"
+              >
+                <span>Register Academic Profile</span>
+                <i data-lucide="arrow-right" className="w-4 h-4"></i>
+              </button>
+              
+              <a 
+                href="/"
+                className="px-8 py-3.5 glass-card hover:bg-gray-800/80 text-white font-bold text-xs rounded-xl border border-gray-800 transition flex items-center space-x-2"
+              >
+                <i data-lucide="play" className="w-4 h-4 text-cyan-400"></i>
+                <span>Explore Live Interactive App</span>
+              </a>
+            </div>
+
+            {/* Quick Tech Badges */}
+            <div className="pt-8 flex flex-wrap justify-center gap-6 text-xs text-gray-400 font-mono">
+              <div className="flex items-center space-x-2"><i data-lucide="check-circle" className="w-4 h-4 text-emerald-400"></i><span>Neo4j Graph Database</span></div>
+              <div className="flex items-center space-x-2"><i data-lucide="check-circle" className="w-4 h-4 text-emerald-400"></i><span>JWT Role Auth</span></div>
+              <div className="flex items-center space-x-2"><i data-lucide="check-circle" className="w-4 h-4 text-emerald-400"></i><span>RAG Vector Retrieval</span></div>
+              <div className="flex items-center space-x-2"><i data-lucide="check-circle" className="w-4 h-4 text-emerald-400"></i><span>React 18 & Django</span></div>
+            </div>
+          </section>
+
+          {/* User Roles Showcase Section */}
+          <section id="roles" className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Tailored Workspaces for 3 Key Roles</h2>
+              <p className="text-xs text-gray-400">Custom interfaces designed specifically for students, supervisors, and platform admins.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <RoleCard 
+                title="Student / Researcher" 
+                icon="graduation-cap" 
+                color="from-brand-600 to-indigo-600"
+                items={["Upload & organize research papers", "Explore concept Knowledge Graphs ⭐", "AI RAG Chat, Explain & Summarize", "AI Viva Prep & Slide Assistant"]} 
+              />
+              <RoleCard 
+                title="Guide / Supervisor" 
+                icon="user-check" 
+                color="from-purple-600 to-pink-600"
+                items={["Supervise assigned student cohorts", "Review weekly progress reports", "Inline annotations & score assignment (0-100)", "Approve milestone submissions"]} 
+              />
+              <RoleCard 
+                title="Administrator" 
+                icon="shield" 
+                color="from-emerald-600 to-teal-600"
+                items={["User account & role management", "Assign guides to student groups", "Monitor Neo4j graph & vector health", "Platform usage analytics"]} 
+              />
+            </div>
+          </section>
+
+          {/* Core Modules Grid Showcase */}
+          <section id="modules" className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">15 Comprehensive Mini-Project Modules</h2>
+              <p className="text-xs text-gray-400">An end-to-end suite powering every stage of initial academic research.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <ModuleCard num="01" title="User Auth & Profiles" desc="JWT security, academic interests, skills & institution specialization." />
+              <ModuleCard num="02" title="Research Workspace" desc="Upload, organize, preview, search & categorize papers and datasets." />
+              <ModuleCard num="03" title="Document Engine" desc="Text cleaning, section extraction, and vector chunking." />
+              <ModuleCard num="04 & 05" title="Knowledge Graph & Visualizer ⭐" desc="Extract entities (CNN, MRI Dataset) & explore Neo4j graph relations." badge="Core" />
+              <ModuleCard num="06" title="AI Research Assistant" desc="Combines LLM + RAG vector search + Knowledge Graph fusion." />
+              <ModuleCard num="07" title="AI Explain Mode" desc="Beginner, Undergraduate, Postgraduate & Researcher audience levels." />
+              <ModuleCard num="08" title="AI Summary Generator" desc="Abstract, Key Findings, Methodology & Conclusion summaries." />
+              <ModuleCard num="09" title="AI Citation Generator" desc="APA 7, IEEE, MLA 9, Chicago & Harvard format generator." />
+              <ModuleCard num="10" title="Presentation AI" desc="Creates presentation slide decks with structured talking points." />
+              <ModuleCard num="11" title="AI Viva Prep Simulator" desc="Simulates viva defense questions with AI feedback and scores." />
+              <ModuleCard num="12" title="Research Community" desc="Social feed to post paper highlights, ask questions & upvote." />
+              <ModuleCard num="13 & 14" title="Guide Supervision Room" desc="Private cohort room, weekly reports, annotations & milestone marks." />
+              <ModuleCard num="15" title="Progress Dashboard" desc="Graphical analytics for uploads, AI usage, and guide approvals." />
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    function RoleCard({ title, icon, color, items }) {
+      return (
+        <div className="glass-card glass-card-hover rounded-2xl p-6 border border-gray-800 space-y-4">
+          <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${color} flex items-center justify-center text-white shadow-lg`}>
+            <i data-lucide={icon} className="w-6 h-6"></i>
+          </div>
+          <h3 className="text-base font-bold text-white">{title}</h3>
+          <ul className="space-y-2 text-xs text-gray-300">
+            {items.map((item, idx) => (
+              <li key={idx} className="flex items-start space-x-2">
+                <span className="text-cyan-400 font-bold">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    function ModuleCard({ num, title, desc, badge }) {
+      return (
+        <div className="glass-card glass-card-hover rounded-2xl p-5 border border-gray-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono font-bold text-brand-400">MODULE {num}</span>
+            {badge && <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">{badge}</span>}
+          </div>
+          <h4 className="text-sm font-bold text-white">{title}</h4>
+          <p className="text-xs text-gray-400">{desc}</p>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // AUTHENTICATION SCREEN (LOGIN & REGISTER)
+    // ==========================================
+    function AuthView({ view, setView, selectedRole, setSelectedRole, onSubmit }) {
+      return (
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <div className="w-full max-w-md glass-card rounded-2xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-gradient-to-tr from-brand-600 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-brand-500/30">
+                <i data-lucide="brain-circuit" className="w-6 h-6 text-white"></i>
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">ResearchSphere AI Portal</h2>
+              <p className="text-xs text-gray-400 mt-1">
+                {view === 'login' ? 'Authenticate using JWT Credentials' : 'Create Academic Researcher Profile'}
+              </p>
+            </div>
+
+            {/* Auth Tab Switcher */}
+            <div className="flex bg-gray-900/90 p-1 rounded-xl mb-6 border border-gray-800">
+              <button 
+                onClick={() => setView("login")} 
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${view === 'login' ? 'bg-brand-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={() => setView("register")} 
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${view === 'register' ? 'bg-brand-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+              >
+                Register
+              </button>
+            </div>
+
+            <form onSubmit={onSubmit} className="space-y-4">
+              {view === "register" && (
+                <div>
+                  <label className="text-xs text-gray-300 font-medium block mb-1">Full Name</label>
+                  <input type="text" required placeholder="e.g. Aarav Sharma" className="w-full px-3 py-2 text-xs glass-input rounded-xl" />
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-gray-300 font-medium block mb-1">Academic Email</label>
+                <input type="email" required placeholder="student@institution.edu" className="w-full px-3 py-2 text-xs glass-input rounded-xl" />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-300 font-medium block mb-1">Password</label>
+                <input type="password" required placeholder="••••••••" className="w-full px-3 py-2 text-xs glass-input rounded-xl" />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-300 font-medium block mb-1">Select User Role</label>
+                <select 
+                  value={selectedRole} 
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="w-full px-3 py-2 text-xs glass-input rounded-xl bg-gray-900 text-gray-100"
+                >
+                  <option value="Student">🎓 Student / Researcher</option>
+                  <option value="Guide">👨‍🏫 Guide / Supervisor</option>
+                  <option value="Admin">⚙️ Administrator</option>
+                </select>
+              </div>
+
+              {view === "register" && (
+                <>
+                  <div>
+                    <label className="text-xs text-gray-300 font-medium block mb-1">Institution / University</label>
+                    <input type="text" defaultValue="National Institute of Technology" className="w-full px-3 py-2 text-xs glass-input rounded-xl" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-300 font-medium block mb-1">Research Specialization</label>
+                    <input type="text" placeholder="e.g. Medical Imaging, Knowledge Graphs" className="w-full px-3 py-2 text-xs glass-input rounded-xl" />
+                  </div>
+                </>
+              )}
+
+              <button 
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white text-xs font-bold rounded-xl shadow-lg shadow-brand-500/25 transition mt-2 flex items-center justify-center space-x-2"
+              >
+                <span>{view === 'login' ? 'Authenticate & Open Workspace' : 'Create Profile & Launch Workspace'}</span>
+                <i data-lucide="arrow-right" className="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<LandingApp />);
+  </script>
+  {% endverbatim %}
+</body>
+</html>
