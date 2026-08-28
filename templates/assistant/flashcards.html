@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Flashcards: {{ document.title }} | AI Study Assistant{% endblock %}
+
+{% block content %}
+<main class="study-body">
+    
+    <div class="flashcards-layout">
+        
+        <!-- Flashcard Header and Navigation link back -->
+        <div style="width: 100%; max-width: 550px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="font-size: 1.8rem; background: linear-gradient(135deg, #ffffff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Study Flashcards
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Perfect for memorizing terms and core definitions
+                </p>
+            </div>
+            <a href="{% url 'document_detail' document.id %}" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                Back
+            </a>
+        </div>
+
+        {% if flashcards %}
+            
+            <!-- 3D Flippable Flashcard Deck -->
+            <div class="flashcard-deck" id="flashcard-card" onclick="toggleFlip()">
+                <div class="flashcard-inner">
+                    
+                    <!-- Front Side: Question -->
+                    <div class="flashcard-face flashcard-front">
+                        <span class="flashcard-badge front-badge">Question</span>
+                        <p class="flashcard-text" id="card-question-text">
+                            Loading flashcard question...
+                        </p>
+                    </div>
+
+                    <!-- Back Side: Answer -->
+                    <div class="flashcard-face flashcard-back">
+                        <span class="flashcard-badge back-badge">Answer Explanation</span>
+                        <p class="flashcard-answer-text" id="card-answer-text">
+                            Loading flashcard answer...
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Flashcard Deck Control Panel -->
+            <div class="flashcard-controls">
+                <button class="btn btn-secondary" onclick="prevCard()" id="prev-btn">
+                    &larr; Prev
+                </button>
+                
+                <span class="card-counter" id="card-counter-display">
+                    1 / {{ flashcards.count }}
+                </span>
+                
+                <button class="btn btn-secondary" onclick="nextCard()" id="next-btn">
+                    Next &rarr;
+                </button>
+            </div>
+
+            <!-- Helpful keyboard controls helper -->
+            <p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: -1rem;">
+                💡 Pro-Tip: You can use your keyboard <strong>Spacebar</strong> to flip, and <strong>Left / Right arrows</strong> to navigate!
+            </p>
+
+        {% else %}
+            
+            <div class="glass-panel empty-state" style="width: 100%; max-width: 550px;">
+                <h4>No flashcards generated</h4>
+                <p>We could not retrieve flashcards for this document. Please return to the details view and reload.</p>
+                <a href="{% url 'document_detail' document.id %}" class="btn btn-primary">Return</a>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+{% if flashcards %}
+<script>
+    // Inject Django models into a structured Javascript list
+    const deck = [
+        {% for card in flashcards %}
+            {
+                "question": "{{ card.question|escapejs }}",
+                "answer": "{{ card.answer|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Fallback if the parser fails due to custom tag name, let's write a safe list:
+    // Let's populate the deck correctly:
+    const flashcardsData = [];
+    {% for card in flashcards %}
+        flashcardsData.push({
+            question: `{{ card.question|escapejs }}`,
+            answer: `{{ card.answer|escapejs }}`
+        });
+    {% endfor %}
+
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    // Load initial flashcard contents
+    function displayCard(index) {
+        // Reset card flip state first to prevent showing answer momentarily
+        const cardContainer = document.getElementById('flashcard-card');
+        cardContainer.classList.remove('flipped');
+        isFlipped = false;
+
+        // Update Text contents after half transition time for visual comfort
+        setTimeout(() => {
+            document.getElementById('card-question-text').innerText = flashcardsData[index].question;
+            document.getElementById('card-answer-text').innerText = flashcardsData[index].answer;
+            document.getElementById('card-counter-display').innerText = `${index + 1} / ${flashcardsData.length}`;
+            
+            // Toggle button states
+            document.getElementById('prev-btn').disabled = (index === 0);
+            document.getElementById('next-btn').disabled = (index === flashcardsData.length - 1);
+        }, 150);
+    }
+
+    // Toggle 3D Card rotation
+    function toggleFlip() {
+        const cardContainer = document.getElementById('flashcard-card');
+        cardContainer.classList.toggle('flipped');
+        isFlipped = !isFlipped;
+    }
+
+    // Navigate to previous card
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            displayCard(currentIndex);
+        }
+    }
+
+    // Navigate to next card
+    function nextCard() {
+        if (currentIndex < flashcardsData.length - 1) {
+            currentIndex++;
+            displayCard(currentIndex);
+        }
+    }
+
+    // Initialize deck load
+    document.addEventListener("DOMContentLoaded", () => {
+        if (flashcardsData.length > 0) {
+            displayCard(currentIndex);
+        }
+    });
+
+    // Keyboard Shortcuts setup (Spacebar, Left, Right Arrow)
+    document.addEventListener("keydown", (e) => {
+        if (flashcardsData.length === 0) return;
+        
+        // Prevent default browser scrolling actions on space/arrows inside study page
+        if (["Space", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+            e.preventDefault();
+        }
+
+        if (e.code === "Space") {
+            toggleFlip();
+        } else if (e.code === "ArrowLeft") {
+            prevCard();
+        } else if (e.code === "ArrowRight") {
+            nextCard();
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
