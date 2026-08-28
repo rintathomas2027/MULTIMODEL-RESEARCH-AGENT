@@ -1,0 +1,3124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScholarPulse AI - Multimodal Research Intelligence & Reference Studio</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+            serif: ['Newsreader', 'serif'],
+          },
+          colors: {
+            gold: {
+              50: '#fefdf7', 100: '#fefcf0', 200: '#fcf3d0', 300: '#f7df94', 400: '#eac459',
+              500: '#d4af37', 600: '#b8860b', 700: '#916508', 800: '#6c4a09', 900: '#4a3205'
+            },
+            obsidian: {
+              750: '#252730',
+              800: '#1a1b22',
+              850: '#14151b',
+              900: '#0e0f14',
+              950: '#08080b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18, ReactDOM & Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Marked.js for Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* THEME ENGINE STYLES */
+    html.dark body {
+      background-color: #08080b;
+      color: #f1f1f5;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(70, 80, 120, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(20, 21, 27, 0.9) 0px, transparent 100%);
+    }
+
+    html.light body {
+      background-color: #fcfbfa;
+      color: #17181c;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(220, 200, 160, 0.1) 0px, transparent 50%);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-attachment: fixed;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* CARD STYLES */
+    .dark .glass-card {
+      background: rgba(18, 19, 25, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dark .glass-card:hover {
+      border-color: rgba(212, 175, 55, 0.45);
+      box-shadow: 0 12px 40px rgba(212, 175, 55, 0.08);
+    }
+
+    .light .glass-card {
+      background: #ffffff;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px 0 rgba(184, 134, 11, 0.04);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .light .glass-card:hover {
+      border-color: rgba(212, 175, 55, 0.6);
+      box-shadow: 0 10px 30px rgba(184, 134, 11, 0.1);
+    }
+
+    /* BUTTONS */
+    .btn-gold {
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: #08080b;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 8px 16px;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 3px 14px rgba(212, 175, 55, 0.3);
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #eac459, #d4af37);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+    }
+
+    .btn-outline-gold {
+      background: transparent;
+      color: #d4af37;
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 8px 14px;
+      transition: all 0.2s ease;
+    }
+    .btn-outline-gold:hover {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: #d4af37;
+    }
+
+    /* WAVEFORM BARS ANIMATION */
+    @keyframes pulse-wave {
+      0%, 100% { height: 4px; }
+      50% { height: 26px; }
+    }
+    .wave-bar {
+      width: 3px;
+      background: #d4af37;
+      border-radius: 9999px;
+      animation: pulse-wave 1.2s infinite ease-in-out;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+    .wave-bar:nth-child(6) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(7) { animation-delay: 0.35s; }
+    .wave-bar:nth-child(8) { animation-delay: 0.5s; }
+
+    /* TOAST ANIMATION */
+    @keyframes slide-down {
+      from { transform: translateY(-100%) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .toast-animate {
+      animation: slide-down 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* CUSTOM SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    .dark ::-webkit-scrollbar-track { background: rgba(14, 15, 20, 0.6); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 4px; }
+    .light ::-webkit-scrollbar-track { background: rgba(250, 249, 245, 0.7); }
+    .light ::-webkit-scrollbar-thumb { background: rgba(184, 134, 11, 0.4); border-radius: 4px; }
+  </style>
+</head>
+<body class="selection:bg-gold-500 selection:text-obsidian-950">
+  <div id="root"></div>
+
+  {% verbatim %}
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const API_BASE = '/api';
+
+    // Global API Helper
+    async function apiRequest(endpoint, options = {}) {
+      let token = localStorage.getItem('sp_access');
+      const headers = { ...options.headers };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+      let config = { ...options, headers };
+      if (options.body && !(options.body instanceof FormData) && typeof options.body === 'object') {
+        config.body = JSON.stringify(options.body);
+      }
+
+      let res = await fetch(`${API_BASE}${endpoint}`, config);
+      if (res.status === 401 && !options.isRetry) {
+        const refresh = localStorage.getItem('sp_refresh');
+        if (refresh) {
+          try {
+            const refreshRes = await fetch(`${API_BASE}/auth/token/refresh/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh })
+            });
+            if (refreshRes.ok) {
+              const data = await refreshRes.json();
+              localStorage.setItem('sp_access', data.access);
+              return apiRequest(endpoint, { ...options, isRetry: true });
+            }
+          } catch(e) {}
+        }
+      }
+      if (!res.ok) {
+        let errData = {};
+        try { errData = await res.json(); } catch(e) {}
+        throw new Error(errData.error || errData.detail || `Server error: ${res.status}`);
+      }
+      return res.json();
+    }
+
+    // Helper: Trigger File Download in Browser
+    function triggerDownload(content, filename, mimeType = 'text/plain') {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Helper: Format Active Duration
+    function formatDuration(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      if (mins < 60) return `${mins}m ${secs}s`;
+      const hrs = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      return `${hrs}h ${remMins}m`;
+    }
+
+    // Helper: Determine Academic Rank by XP
+    function getAcademicRank(xp) {
+      if (xp < 150) return { level: 1, title: 'Junior Scholar', nextXP: 150, progress: (xp / 150) * 100, badge: '🌱' };
+      if (xp < 350) return { level: 2, title: 'Applied Researcher', nextXP: 350, progress: ((xp - 150) / 200) * 100, badge: '🔬' };
+      if (xp < 650) return { level: 3, title: 'Master Fellow', nextXP: 650, progress: ((xp - 350) / 300) * 100, badge: '🧠' };
+      if (xp < 1000) return { level: 4, title: 'Principal Investigator', nextXP: 1000, progress: ((xp - 650) / 350) * 100, badge: '⚡' };
+      return { level: 5, title: 'Summa Cum Laude Laureate', nextXP: xp, progress: 100, badge: '👑' };
+    }
+
+    // ==========================================
+    // ROOT APPLICATION COMPONENT
+    // ==========================================
+    function App() {
+      const [theme, setTheme] = useState(() => localStorage.getItem('sp_theme') || 'dark');
+      const [user, setUser] = useState(null);
+      const [documents, setDocuments] = useState([]);
+      const [selectedDoc, setSelectedDoc] = useState(null);
+      const [selectedDocIds, setSelectedDocIds] = useState([]);
+      const [activeTab, setActiveTab] = useState('chat');
+      const [search, setSearch] = useState('');
+      const [loadingDocs, setLoadingDocs] = useState(false);
+
+      // Gamification, Session & Rewards State
+      const [xpPoints, setXpPoints] = useState(() => parseInt(localStorage.getItem('sp_xp') || '250', 10));
+      const [loginTime, setLoginTime] = useState(() => localStorage.getItem('sp_login_time') || new Date().toISOString());
+      const [activityHistory, setActivityHistory] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('sp_history') || '[]'); } catch(e) { return []; }
+      });
+      const [userFeedback, setUserFeedback] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('sp_feedback') || 'null'); } catch(e) { return null; }
+      });
+      const [sessionSeconds, setSessionSeconds] = useState(0);
+      const [rewardToast, setRewardToast] = useState(null);
+
+      // Modals
+      const [showAuth, setShowAuth] = useState(false);
+      const [showUpload, setShowUpload] = useState(false);
+      const [showExternalResolver, setShowExternalResolver] = useState(false);
+      const [showProfile, setShowProfile] = useState(false);
+      const [showGuide, setShowGuide] = useState(false);
+      const [showCommandHub, setShowCommandHub] = useState(false);
+      const [showCrossMatrixModal, setShowCrossMatrixModal] = useState(false);
+      const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+      const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+      // Session Timer Interval
+      useEffect(() => {
+        const timer = setInterval(() => {
+          setSessionSeconds(prev => prev + 1);
+        }, 1000);
+        return () => clearInterval(timer);
+      }, []);
+
+      // Apply theme to <html> class
+      useEffect(() => {
+        const root = document.documentElement;
+        if (theme === 'dark') {
+          root.classList.add('dark');
+          root.classList.remove('light');
+        } else {
+          root.classList.add('light');
+          root.classList.remove('dark');
+        }
+        localStorage.setItem('sp_theme', theme);
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+      // Command Hub Shortcut (Ctrl+K / Cmd+K)
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            setShowCommandHub(prev => !prev);
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, []);
+
+      const [showLandingPage, setShowLandingPage] = useState(false);
+
+      useEffect(() => {
+        const savedUser = localStorage.getItem('sp_user');
+        if (savedUser) {
+          try {
+            setUser(JSON.parse(savedUser));
+            fetchDocs();
+          } catch(e) {}
+        }
+      }, []);
+
+      const enterWorkspaceAsGuest = (notify = true) => {
+        const guestUser = {
+          id: 1,
+          username: 'Researcher_Demo',
+          email: 'researcher@scholarpulse.ai',
+          profile: { academic_level: 'MCA Student', avatar: 'summa' }
+        };
+        localStorage.setItem('sp_user', JSON.stringify(guestUser));
+        setUser(guestUser);
+        setShowLandingPage(false);
+        fetchDocs();
+        if (notify) {
+          awardXP(50, 'Research Studio Activated', 'Entered 1-Click Guest Researcher Studio with all 14 modules unlocked.', '⚡');
+        }
+      };
+
+      useEffect(() => {
+        if (user) fetchDocs(search);
+      }, [search, user]);
+
+      // Award Reward Points & Log Activity
+      const awardXP = (amount, title, remark, icon = '⭐') => {
+        const newXP = xpPoints + amount;
+        setXpPoints(newXP);
+        localStorage.setItem('sp_xp', newXP.toString());
+
+        const newLog = {
+          id: Date.now(),
+          title,
+          amount,
+          remark,
+          icon,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+
+        const updatedHistory = [newLog, ...activityHistory].slice(0, 50);
+        setActivityHistory(updatedHistory);
+        localStorage.setItem('sp_history', JSON.stringify(updatedHistory));
+
+        // Trigger Reward Toast
+        setRewardToast({ amount, title, remark, icon });
+        setTimeout(() => {
+          setRewardToast(null);
+        }, 4500);
+      };
+
+      const fetchDocs = async (q = '') => {
+        setLoadingDocs(true);
+        try {
+          const docs = await apiRequest(`/workspace/documents/${q ? '?q=' + encodeURIComponent(q) : ''}`);
+          setDocuments(docs);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoadingDocs(false);
+        }
+      };
+
+      const handleLogin = async (username, password) => {
+        const res = await apiRequest('/auth/login/', { method: 'POST', body: { username, password } });
+        localStorage.setItem('sp_access', res.tokens.access);
+        localStorage.setItem('sp_refresh', res.tokens.refresh);
+        localStorage.setItem('sp_user', JSON.stringify(res.user));
+        const now = new Date().toISOString();
+        localStorage.setItem('sp_login_time', now);
+        setLoginTime(now);
+        setUser(res.user);
+        setShowAuth(false);
+        fetchDocs();
+        awardXP(50, 'Session Initialized', `Welcome back, Researcher ${res.user.username}! Active workspace session loaded.`, '🚀');
+      };
+
+      const handleRegister = async (data) => {
+        const res = await apiRequest('/auth/register/', { method: 'POST', body: data });
+        localStorage.setItem('sp_access', res.tokens.access);
+        localStorage.setItem('sp_refresh', res.tokens.refresh);
+        localStorage.setItem('sp_user', JSON.stringify(res.user));
+        const now = new Date().toISOString();
+        localStorage.setItem('sp_login_time', now);
+        setLoginTime(now);
+        setUser(res.user);
+        setShowAuth(false);
+        fetchDocs();
+        awardXP(100, 'Academic Account Created', 'Welcome to ScholarPulse! +100 Initial Research Grant XP Awarded.', '🎓');
+      };
+
+      const handleLogout = () => {
+        localStorage.removeItem('sp_user');
+        localStorage.removeItem('sp_access');
+        localStorage.removeItem('sp_refresh');
+        setUser(null);
+        setShowLandingPage(true);
+        setSelectedDoc(null);
+        setSelectedDocIds([]);
+      };
+
+      const handleDeleteDoc = async (id) => {
+        if (confirm('Delete this research paper and its vector index?')) {
+          await apiRequest(`/workspace/documents/${id}/`, { method: 'DELETE' });
+          setDocuments(prev => prev.filter(d => d.id !== id));
+          setSelectedDocIds(prev => prev.filter(item => item !== id));
+          if (selectedDoc?.id === id) setSelectedDoc(null);
+        }
+      };
+
+      const toggleDocSelect = (id) => {
+        setSelectedDocIds(prev => 
+          prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+      };
+
+      const PRESET_AVATARS_MAP = {
+        'technomancer': { icon: '🧙‍♂️', color: 'from-purple-500 to-indigo-600' },
+        'quantum': { icon: '⚛️', color: 'from-cyan-400 to-blue-600' },
+        'neural': { icon: '🧠', color: 'from-pink-500 to-rose-600' },
+        'deepspace': { icon: '🚀', color: 'from-amber-400 to-orange-600' },
+        'genomic': { icon: '🧬', color: 'from-emerald-400 to-teal-600' },
+        'summa': { icon: '🎓', color: 'from-yellow-400 to-amber-600' },
+        'terminal': { icon: '💻', color: 'from-green-400 to-emerald-700' },
+        'astro': { icon: '🪐', color: 'from-rose-400 to-purple-600' }
+      };
+      const userAvatar = user?.profile?.avatar ? (PRESET_AVATARS_MAP[user.profile.avatar] || PRESET_AVATARS_MAP['technomancer']) : PRESET_AVATARS_MAP['technomancer'];
+      const rankInfo = getAcademicRank(xpPoints);
+
+      return (
+        <div className="min-h-screen flex flex-col transition-colors duration-300 relative">
+          
+          {/* FLOATING REWARD TOAST */}
+          {rewardToast && (
+            <div className="fixed top-20 right-6 z-50 max-w-sm w-full p-4 rounded-2xl glass-card border-gold-400 bg-obsidian-950/95 shadow-2xl toast-animate flex items-start gap-3 border-l-4 border-l-gold-400">
+              <div className="w-10 h-10 rounded-xl bg-gold-500/20 text-gold-300 flex items-center justify-center text-xl flex-shrink-0">
+                {rewardToast.icon}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs text-gold-400">+{rewardToast.amount} RESEARCH XP</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Awarded</span>
+                </div>
+                <h4 className="font-bold text-xs text-white mt-0.5">{rewardToast.title}</h4>
+                <p className="text-[11px] text-slate-300 mt-1 italic leading-tight">"{rewardToast.remark}"</p>
+              </div>
+            </div>
+          )}
+
+          {/* HEADER / NAVIGATION */}
+          <nav className="h-16 border-b border-gold-500/20 bg-obsidian-900/90 dark:bg-obsidian-950/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 text-white shadow-lg">
+            {/* LOGO */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setShowLandingPage(true); setSelectedDoc(null); }}>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 border border-gold-300 flex items-center justify-center text-obsidian-950 font-black text-base shadow-md shadow-gold-500/20">⚡</div>
+              <div>
+                <span className="font-extrabold text-base tracking-tight">ScholarPulse <span className="text-gold-400 font-light">STUDIO</span></span>
+                <span className="hidden sm:inline-block ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-gold-500/10 text-gold-400 border border-gold-500/30">v2.0 PRO</span>
+              </div>
+            </div>
+
+            {/* UNIVERSAL SEARCH & CMD+K BUTTON */}
+            {user && (
+              <div className="flex-1 max-w-sm mx-4 hidden md:flex items-center">
+                <div 
+                  onClick={() => setShowCommandHub(true)} 
+                  className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl bg-obsidian-800/80 border border-gold-500/30 text-slate-300 text-xs hover:border-gold-400 cursor-pointer transition-all shadow-inner"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-gold-400">🔍</span>
+                    <span>Search or command...</span>
+                  </span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-obsidian-900 border border-gold-500/40 text-[9px] text-gold-400 font-mono">⌘K</kbd>
+                </div>
+              </div>
+            )}
+
+            {/* ACTION BAR & STATS DOCK */}
+            <div className="flex items-center gap-2">
+              {/* HOME / LANDING PAGE TOGGLE */}
+              {user && (
+                <button
+                  onClick={() => { setShowLandingPage(prev => !prev); setSelectedDoc(null); }}
+                  className="btn-outline-gold text-xs flex items-center gap-1"
+                  title="Toggle Landing Page / Workspace"
+                >
+                  <span>{showLandingPage ? '📚 Workspace' : '🏠 Overview'}</span>
+                </button>
+              )}
+
+              {/* GAMIFIED XP BADGE (CLICKABLE) */}
+              {user && (
+                <div 
+                  onClick={() => setShowAnalyticsModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-gold-500/15 to-amber-500/10 border border-gold-500/40 text-xs cursor-pointer hover:border-gold-300 transition-all shadow-sm group"
+                  title="Click to view full Usage Analytics, Research XP, and History Log"
+                >
+                  <span className="text-sm">{rankInfo.badge}</span>
+                  <div className="text-left leading-tight hidden sm:block">
+                    <div className="font-extrabold text-gold-400 text-[11px] group-hover:underline">{xpPoints} XP • Lvl {rankInfo.level}</div>
+                    <div className="text-[9px] text-slate-400 font-mono truncate">{rankInfo.title}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* ACTIVE SESSION TIMER */}
+              {user && (
+                <div 
+                  onClick={() => setShowAnalyticsModal(true)}
+                  className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-obsidian-800/80 border border-slate-700 text-[11px] text-slate-300 font-mono cursor-pointer hover:border-slate-500"
+                  title="Active Session Time"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>{formatDuration(sessionSeconds)}</span>
+                </div>
+              )}
+
+              {/* SATISFACTION RATING BUTTON */}
+              {user && (
+                <button 
+                  onClick={() => setShowFeedbackModal(true)}
+                  className="px-2.5 py-1.5 rounded-xl border border-gold-500/30 text-gold-400 text-xs font-semibold hover:bg-gold-500/10 transition-all flex items-center gap-1"
+                  title="Give Satisfaction Rating & Feedback"
+                >
+                  <span>⭐</span> <span className="hidden xl:inline">{userFeedback ? `${userFeedback.rating}★ Rated` : 'Rate App'}</span>
+                </button>
+              )}
+
+              {/* THEME TOGGLE */}
+              <button 
+                onClick={toggleTheme} 
+                title="Toggle Theme"
+                className="w-8 h-8 rounded-lg bg-obsidian-800 border border-gold-500/30 text-gold-400 flex items-center justify-center text-xs hover:border-gold-400 transition-all"
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
+
+              {user ? (
+                <>
+                  {/* DOI / ArXiv RESOLVER BUTTON */}
+                  <button 
+                    onClick={() => setShowExternalResolver(true)}
+                    className="btn-outline-gold text-xs hidden sm:flex items-center gap-1.5"
+                    title="Ingest paper via DOI / ArXiv"
+                  >
+                    <span>🌐</span> <span>DOI / arXiv</span>
+                  </button>
+
+                  {/* UPLOAD BUTTON */}
+                  <button onClick={() => setShowUpload(true)} className="btn-gold flex items-center gap-1.5 text-xs">
+                    <span>📤</span> <span>Upload</span>
+                  </button>
+
+                  {/* USER BADGE */}
+                  <div onClick={() => setShowProfile(true)} className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-obsidian-800 border border-gold-500/30 cursor-pointer hover:border-gold-400 transition-all">
+                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${userAvatar.color} text-white flex items-center justify-center text-[10px] shadow`}>
+                      {userAvatar.icon}
+                    </div>
+                    <span className="hidden lg:inline text-xs font-semibold text-white">{user.username}</span>
+                  </div>
+
+                  <button onClick={handleLogout} className="px-2 py-1.5 rounded-lg bg-obsidian-800/80 border border-slate-700 text-slate-400 text-xs hover:text-white hover:border-slate-500 transition-all">
+                    ✕
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowAuth(true)} className="btn-gold text-xs">Sign In / Register</button>
+              )}
+            </div>
+          </nav>
+
+          {/* MAIN CONTAINER */}
+          <main className="flex-1 max-w-[1520px] w-full mx-auto p-4 sm:p-6 lg:p-8">
+            {!user || showLandingPage ? (
+              /* LANDING HERO VIEW */
+              <div className="py-8 lg:py-16">
+                <div className="max-w-4xl mx-auto text-center space-y-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/40 text-gold-500 text-xs font-bold uppercase tracking-wider">
+                    <span>🚀</span> Next-Gen AI Multimodal Research Studio
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                    Extraordinary Intelligence for <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-gold-500 to-amber-600">Research & Citations</span>
+                  </h1>
+                  <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                    Surpassing Mendeley, Zotero, and NotebookLM. Ingest PDFs, DOIs, diagrams, and ArXiv papers. Generate cross-paper synthesis matrices, dual-host audio deep dives, instant BibTeX citations, and Reviewer #2 scientific audits.
+                  </p>
+
+                  <div className="pt-4 flex flex-wrap justify-center gap-4">
+                    <button onClick={() => enterWorkspaceAsGuest(true)} className="btn-gold text-sm px-8 py-3.5 shadow-xl shadow-gold-500/20 flex items-center gap-2">
+                      <span>⚡</span> Launch Research Workspace (1-Click Access) →
+                    </button>
+                    <button onClick={() => setShowGuide(true)} className="px-6 py-3.5 rounded-xl border border-slate-600 text-slate-300 text-sm font-semibold hover:border-gold-400 hover:text-gold-400 transition-all">
+                      Explore All 14 Modules
+                    </button>
+                  </div>
+                </div>
+
+                {/* FEATURE HIGHLIGHT MATRIX */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+                  <div 
+                    onClick={() => {
+                      enterWorkspaceAsGuest(false);
+                      if (documents.length > 0) {
+                        setSelectedDoc(documents[0]);
+                        setActiveTab('citations');
+                      }
+                    }}
+                    className="glass-card p-6 border-gold-500/30 cursor-pointer hover:scale-105 transition-all group"
+                  >
+                    <div className="text-3xl mb-3">🎓</div>
+                    <h3 className="font-bold text-base mb-2 group-hover:text-gold-400">Mendeley & Zotero Killer</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Instant 1-click DOI / ArXiv auto-resolver, formatted citations in APA, IEEE, Harvard, MLA, and exportable .bib & .ris files ready for Overleaf.
+                    </p>
+                    <div className="text-gold-400 text-xs font-bold mt-4">Open Citation Studio →</div>
+                  </div>
+
+                  <div 
+                    onClick={() => {
+                      enterWorkspaceAsGuest(false);
+                      if (documents.length >= 2) {
+                        setSelectedDocIds([documents[0].id, documents[1].id]);
+                        setShowCrossMatrixModal(true);
+                      }
+                    }}
+                    className="glass-card p-6 border-gold-500/30 cursor-pointer hover:scale-105 transition-all group"
+                  >
+                    <div className="text-3xl mb-3">📊</div>
+                    <h3 className="font-bold text-base mb-2 group-hover:text-gold-400">Cross-Paper Synthesis Matrix</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Select multiple papers and generate side-by-side literature review comparison tables with consensus & divergence analysis and CSV exports.
+                    </p>
+                    <div className="text-gold-400 text-xs font-bold mt-4">Open Synthesis Matrix →</div>
+                  </div>
+
+                  <div 
+                    onClick={() => {
+                      enterWorkspaceAsGuest(false);
+                      if (documents.length > 0) {
+                        setSelectedDoc(documents[0]);
+                        setActiveTab('scholarcast');
+                      }
+                    }}
+                    className="glass-card p-6 border-gold-500/30 cursor-pointer hover:scale-105 transition-all group"
+                  >
+                    <div className="text-3xl mb-3">🎙️</div>
+                    <h3 className="font-bold text-base mb-2 group-hover:text-gold-400">"ScholarCast" Audio Deep Dive</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Converts research papers into engaging 2-host audio podcast dialogues with interactive speech synthesis, waveform visualizer, and transcripts.
+                    </p>
+                    <div className="text-gold-400 text-xs font-bold mt-4">Listen to Podcast Studio →</div>
+                  </div>
+                </div>
+              </div>
+            ) : !selectedDoc ? (
+              /* WORKSPACE VIEW */
+              <div className="space-y-6">
+                {/* TOOLBAR */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gold-500/20">
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight">📚 Research Library & Workspace</h2>
+                    <p className="text-xs text-slate-400">Select papers for cross-synthesis, or open any document to activate deep AI intelligence tools.</p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <button 
+                      onClick={() => setShowAnalyticsModal(true)}
+                      className="px-3 py-1.5 rounded-xl bg-obsidian-800 border border-gold-500/30 text-gold-400 text-xs font-semibold hover:border-gold-400 transition-all flex items-center gap-1.5"
+                    >
+                      <span>📊</span> Activity Log & XP
+                    </button>
+                    {selectedDocIds.length >= 2 && (
+                      <button 
+                        onClick={() => {
+                          setShowCrossMatrixModal(true);
+                          awardXP(80, 'Literature Matrix Synthesized', `Cross-synthesized ${selectedDocIds.length} papers into a comparative matrix.`, '📊');
+                        }}
+                        className="btn-gold text-xs flex items-center gap-2 animate-bounce"
+                      >
+                        <span>📊</span> Synthesize ({selectedDocIds.length}) Papers
+                      </button>
+                    )}
+                    <button onClick={() => setShowExternalResolver(true)} className="btn-outline-gold text-xs flex items-center gap-1.5">
+                      <span>🌐</span> Ingest DOI / ArXiv
+                    </button>
+                    <button onClick={() => setShowUpload(true)} className="btn-gold text-xs flex items-center gap-1.5">
+                      <span>➕</span> Upload File
+                    </button>
+                  </div>
+                </div>
+
+                {/* 🌟 14 RESEARCH MODULES QUICK ACCESS BAR */}
+                <div className="glass-card p-3 border-gold-500/30 overflow-x-auto shadow-md flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-gold-400 whitespace-nowrap px-2">⚡ Quick Tools:</span>
+                  {[
+                    { id: 'chat', label: '💬 RAG Chat', icon: '💬' },
+                    { id: 'citations', label: '🎓 Mendeley Citations', icon: '🎓' },
+                    { id: 'scholarcast', label: '🎙️ ScholarCast Podcast', icon: '🎙️' },
+                    { id: 'roast', label: '⚔️ Reviewer #2 Roast', icon: '⚔️' },
+                    { id: 'formula', label: '🧮 Formula to Code', icon: '🧮' },
+                    { id: 'explain', label: '⭐ 4-Level Explain', icon: '⭐' },
+                    { id: 'presentation', label: '📊 Slides Generator', icon: '📊' },
+                    { id: 'viva', label: '🎓 Viva Defense Prep', icon: '🎓' }
+                  ].map(tool => (
+                    <button
+                      key={tool.id}
+                      onClick={() => {
+                        if (documents.length > 0) {
+                          setSelectedDoc(documents[0]);
+                          setActiveTab(tool.id);
+                        } else {
+                          setShowUpload(true);
+                        }
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 text-slate-300 hover:text-white text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 hover:bg-gold-500/15"
+                    >
+                      <span>{tool.icon}</span> <span>{tool.label}</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      if (documents.length >= 2) {
+                        setSelectedDocIds([documents[0].id, documents[1].id]);
+                        setShowCrossMatrixModal(true);
+                      } else {
+                        setShowCrossMatrixModal(true);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-gold-500/20 to-amber-500/20 border border-gold-400 text-gold-300 text-xs font-black whitespace-nowrap transition-all flex items-center gap-1.5 hover:scale-105"
+                  >
+                    <span>📊</span> <span>Cross-Paper Matrix</span>
+                  </button>
+                </div>
+
+                {/* PAPERS GRID */}
+                {documents.length === 0 ? (
+                  <div className="glass-card p-12 text-center max-w-xl mx-auto space-y-4">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-3xl text-gold-400">
+                      📄
+                    </div>
+                    <h3 className="text-lg font-bold">Your Research Library is Empty</h3>
+                    <p className="text-xs text-slate-400">
+                      Upload PDF research papers, system diagrams, or enter a DOI / arXiv ID to start building your interactive research workspace.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button onClick={() => setShowExternalResolver(true)} className="btn-outline-gold text-xs">
+                        Resolve DOI / ArXiv
+                      </button>
+                      <button onClick={() => setShowUpload(true)} className="btn-gold text-xs">
+                        Upload Document
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {documents.map(doc => {
+                      const isSelected = selectedDocIds.includes(doc.id);
+                      return (
+                        <div 
+                          key={doc.id} 
+                          onClick={() => setSelectedDoc(doc)}
+                          className={`glass-card p-5 cursor-pointer flex flex-col justify-between min-h-[190px] group relative ${isSelected ? 'ring-2 ring-gold-500 border-gold-400 bg-gold-500/5' : ''}`}
+                        >
+                          {/* TOP BAR */}
+                          <div>
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isSelected}
+                                  onChange={(e) => { e.stopPropagation(); toggleDocSelect(doc.id); }}
+                                  className="rounded border-gold-500 text-gold-600 focus:ring-gold-500 cursor-pointer w-4 h-4"
+                                />
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gold-500/15 text-gold-400 border border-gold-500/30">
+                                  {doc.title.match(/\.(png|jpg|jpeg|webp)$/i) ? '🖼️ DIAGRAM' : doc.title.endsWith('.pdf') ? '📄 PDF' : doc.title.match(/\.(docx|doc)$/i) ? '📝 DOCX' : doc.title.match(/\.(pptx|ppt)$/i) ? '📊 PPTX' : '📄 PAPER'}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-mono">{doc.file_size_formatted || 'Indexed'}</span>
+                            </div>
+                            
+                            <h3 className="font-bold text-sm line-clamp-2 group-hover:text-gold-400 transition-colors">
+                              {doc.title}
+                            </h3>
+
+                            {/* QUICK ACTION FEATURE CHIPS ON EVERY CARD */}
+                            <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-slate-700/40">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('chat'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="RAG Chat & Abstract"
+                              >
+                                💬 Chat
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('citations'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="Mendeley Citations & BibTeX"
+                              >
+                                🎓 Cite
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('scholarcast'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="ScholarCast Audio Podcast"
+                              >
+                                🎙️ Audio
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('roast'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-rose-500/20 hover:border-rose-400 hover:bg-rose-500/20 text-[10px] font-bold text-slate-300 hover:text-rose-300 transition-all flex items-center justify-center gap-1"
+                                title="Reviewer #2 Critical Roast"
+                              >
+                                ⚔️ Roast
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('formula'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="Formula & Math to Code"
+                              >
+                                🧮 Code
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('explain'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="4-Level Explain Mode"
+                              >
+                                ⭐ Explain
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('presentation'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="Presentation Slide Generator"
+                              >
+                                📊 Slides
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('viva'); }}
+                                className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
+                                title="University Viva & Defense Prep"
+                              >
+                                🎓 Viva
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* BOTTOM BAR */}
+                          <div className="pt-3 mt-3 border-t border-slate-500/20 flex justify-between items-center text-xs">
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {new Date(doc.uploaded_at).toLocaleDateString()}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gold-400 font-semibold group-hover:translate-x-1 transition-transform text-xs">
+                                Open Studio →
+                              </span>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id); }}
+                                className="text-rose-500 hover:text-rose-400 p-1"
+                                title="Delete Document"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* ACTIVE DOCUMENT STUDIO WORKBENCH */
+              <div className="space-y-5">
+                {/* STUDIO HEADER */}
+                <div className="glass-card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setSelectedDoc(null)} 
+                      className="px-3 py-1.5 rounded-xl bg-obsidian-800 border border-gold-500/30 text-gold-400 text-xs font-semibold hover:border-gold-400 transition-all flex items-center gap-1"
+                    >
+                      ← Back
+                    </button>
+                    <div>
+                      <h2 className="text-base font-extrabold tracking-tight truncate max-w-xl">{selectedDoc.title}</h2>
+                      <p className="text-[11px] text-slate-400">Vector Grounded • Gemini Multi-Engine Active</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const citTabBtn = document.querySelector('[data-tab="citations"]');
+                        if (citTabBtn) citTabBtn.click();
+                      }}
+                      className="btn-outline-gold text-xs flex items-center gap-1.5"
+                    >
+                      <span>📜</span> Quick Cite
+                    </button>
+                  </div>
+                </div>
+
+                {/* STUDIO TABS NAV */}
+                <div className="flex gap-2 p-2 glass-card overflow-x-auto shadow-lg border-gold-500/30 bg-obsidian-950/80">
+                  {[
+                    { id: 'chat', label: '💬 RAG Chat & Summary' },
+                    { id: 'citations', label: '🎓 Mendeley Citations & BibTeX' },
+                    { id: 'scholarcast', label: '🎙️ ScholarCast Podcast' },
+                    { id: 'roast', label: '⚔️ Reviewer #2 Rigor Roast' },
+                    { id: 'formula', label: '🧮 Formula to Code' },
+                    { id: 'explain', label: '🧠 4-Level Explainer' },
+                    { id: 'presentation', label: '📊 Presentation Slides' },
+                    { id: 'viva', label: '🏛️ Viva Defense Prep' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      data-tab={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-2 ${activeTab === tab.id ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-obsidian-950 shadow-lg shadow-gold-500/25 scale-[1.02]' : 'text-slate-400 hover:text-white hover:bg-gold-500/10'}`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* TAB CONTENT PANELS */}
+                {activeTab === 'chat' && <ChatTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'citations' && <CitationsTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'scholarcast' && <ScholarCastTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'roast' && <CriticalRoastTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'formula' && <FormulaCodeTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'explain' && <ExplainTab doc={selectedDoc} userLevel={user.profile?.academic_level} onAwardXP={awardXP} />}
+                {activeTab === 'presentation' && <PresentationTab doc={selectedDoc} onAwardXP={awardXP} />}
+                {activeTab === 'viva' && <VivaTab doc={selectedDoc} onAwardXP={awardXP} />}
+              </div>
+            )}
+          </main>
+
+          {/* ================= MODALS ================= */}
+
+          {/* ANALYTICS, REWARDS & HISTORY HUB MODAL */}
+          {showAnalyticsModal && (
+            <AnalyticsAndRewardsModal 
+              user={user}
+              documents={documents}
+              xpPoints={xpPoints}
+              rankInfo={rankInfo}
+              loginTime={loginTime}
+              sessionSeconds={sessionSeconds}
+              activityHistory={activityHistory}
+              userFeedback={userFeedback}
+              onOpenFeedback={() => { setShowAnalyticsModal(false); setShowFeedbackModal(true); }}
+              onClose={() => setShowAnalyticsModal(false)}
+            />
+          )}
+
+          {/* SATISFACTION FEEDBACK MODAL */}
+          {showFeedbackModal && (
+            <SatisfactionFeedbackModal 
+              currentFeedback={userFeedback}
+              onSaveFeedback={(feedback) => {
+                setUserFeedback(feedback);
+                localStorage.setItem('sp_feedback', JSON.stringify(feedback));
+                awardXP(50, 'Satisfaction Rating Submitted', `Thank you for rating ScholarPulse AI (${feedback.rating}★)! Your feedback refines model evaluation.`, '🌟');
+                setShowFeedbackModal(false);
+              }}
+              onClose={() => setShowFeedbackModal(false)}
+            />
+          )}
+
+          {/* COMMAND PALETTE (CTRL+K) */}
+          {showCommandHub && (
+            <CommandHubModal 
+              onClose={() => setShowCommandHub(false)} 
+              documents={documents}
+              onSelectDoc={(doc) => { setSelectedDoc(doc); setShowCommandHub(false); }}
+              onTriggerUpload={() => { setShowUpload(true); setShowCommandHub(false); }}
+              onTriggerExternal={() => { setShowExternalResolver(true); setShowCommandHub(false); }}
+              onTriggerAnalytics={() => { setShowAnalyticsModal(true); setShowCommandHub(false); }}
+              onToggleTheme={toggleTheme}
+            />
+          )}
+
+          {/* CROSS-PAPER MATRIX MODAL */}
+          {showCrossMatrixModal && (
+            <CrossPaperMatrixModal 
+              docIds={selectedDocIds}
+              documents={documents}
+              onClose={() => setShowCrossMatrixModal(false)}
+            />
+          )}
+
+          {/* DOI / ARXIV RESOLVER MODAL */}
+          {showExternalResolver && (
+            <ExternalResolverModal 
+              onClose={() => setShowExternalResolver(false)}
+              onSuccess={(newDoc) => {
+                setDocuments(prev => [newDoc, ...prev]);
+                setSelectedDoc(newDoc);
+                setShowExternalResolver(false);
+                awardXP(50, 'ArXiv/DOI Paper Ingested', `Successfully resolved and vectorized '${newDoc.title}' from academic APIs.`, '🌐');
+              }}
+            />
+          )}
+
+          {/* UPLOAD MODAL */}
+          {showUpload && (
+            <UploadModal 
+              onClose={() => setShowUpload(false)} 
+              onSuccess={(newDoc) => { 
+                setDocuments(prev => [newDoc, ...prev]); 
+                setSelectedDoc(newDoc); 
+                setShowUpload(false); 
+                awardXP(50, 'Research Document Ingested', `Successfully uploaded and vector-indexed '${newDoc.title}'.`, '📄');
+              }} 
+            />
+          )}
+
+          {/* AUTH MODAL */}
+          {showAuth && <AuthModal onClose={() => setShowAuth(false)} onLogin={handleLogin} onRegister={handleRegister} onGuestAccess={enterWorkspaceAsGuest} />}
+
+          {/* PROFILE MODAL */}
+          {showProfile && <ProfileModal onClose={() => setShowProfile(false)} user={user} onUpdateUser={(updated) => { setUser(updated); localStorage.setItem('sp_user', JSON.stringify(updated)); }} />}
+
+          {/* GUIDE MODAL */}
+          {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // USER ANALYTICS, REWARDS & ACTIVITY HISTORY MODAL
+    // ==========================================
+    function AnalyticsAndRewardsModal({ user, documents, xpPoints, rankInfo, loginTime, sessionSeconds, activityHistory, userFeedback, onOpenFeedback, onClose }) {
+      const [modalTab, setModalTab] = useState('analytics');
+
+      const BADGES = [
+        { id: 'ingest', title: 'First Paper Ingested', desc: 'Added a paper to the vector repository.', icon: '📄', unlocked: documents.length > 0 },
+        { id: 'scholarcast', title: 'Dual-Host Audio Scholar', desc: 'Listened to a 2-host podcast breakdown.', icon: '🎙️', unlocked: activityHistory.some(h => h.title.includes('ScholarCast')) },
+        { id: 'reviewer', title: 'Reviewer #2 Slayer', desc: 'Audited scientific rigor & fatal flaws.', icon: '⚔️', unlocked: activityHistory.some(h => h.title.includes('Reviewer')) },
+        { id: 'cite', title: 'Citation Master', desc: 'Exported BibTeX or RIS citations.', icon: '📜', unlocked: activityHistory.some(h => h.title.includes('BibTeX') || h.title.includes('Citation')) },
+        { id: 'matrix', title: 'Literature Synthesizer', desc: 'Generated multi-paper comparison matrix.', icon: '📊', unlocked: activityHistory.some(h => h.title.includes('Matrix')) },
+        { id: 'feedback', title: 'Feedback Contributor', desc: 'Submitted platform satisfaction review.', icon: '⭐', unlocked: !!userFeedback }
+      ];
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-4xl w-full max-h-[90vh] flex flex-col p-6 border-gold-400 bg-obsidian-950 shadow-2xl">
+            {/* HEADER */}
+            <div className="flex justify-between items-center pb-4 border-b border-gold-500/20">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📊</span>
+                <div>
+                  <h3 className="font-extrabold text-lg">Researcher Analytics & Reward Hub</h3>
+                  <p className="text-xs text-slate-400">Track usage metrics, academic rewards, and research timeline</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            {/* MODAL TABS */}
+            <div className="flex gap-2 py-3 border-b border-gold-500/20 overflow-x-auto">
+              {[
+                { id: 'analytics', label: '📈 Usage Analytics & Session' },
+                { id: 'rewards', label: `🏆 Rewards & Badges (${xpPoints} XP)` },
+                { id: 'history', label: `📜 Activity History (${activityHistory.length})` },
+                { id: 'satisfaction', label: '⭐ Satisfaction & Feedback' }
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setModalTab(t.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${modalTab === t.id ? 'bg-gold-500 text-obsidian-950 font-black' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* TAB CONTENT */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
+              {/* TAB 1: USAGE ANALYTICS */}
+              {modalTab === 'analytics' && (
+                <div className="space-y-6">
+                  {/* SESSION STATS GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-xl bg-obsidian-900 border border-gold-500/20 space-y-1">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">Session Login Time</div>
+                      <div className="text-sm font-bold text-white">{new Date(loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div className="text-[10px] text-slate-500">{new Date(loginTime).toLocaleDateString()}</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-obsidian-900 border border-emerald-500/30 space-y-1">
+                      <div className="text-[10px] font-bold text-emerald-400 uppercase">Active Research Duration</div>
+                      <div className="text-sm font-bold text-white font-mono">{formatDuration(sessionSeconds)}</div>
+                      <div className="text-[10px] text-emerald-400">● Live Workspace Active</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-obsidian-900 border border-gold-500/30 space-y-1">
+                      <div className="text-[10px] font-bold text-gold-400 uppercase">Total Papers Vectorized</div>
+                      <div className="text-sm font-bold text-white">{documents.length} Documents</div>
+                      <div className="text-[10px] text-slate-400">Indexed in ChromaDB</div>
+                    </div>
+                  </div>
+
+                  {/* LEVEL PROGRESSION BAR */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-gold-500/15 via-transparent to-amber-500/10 border border-gold-500/30 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-[10px] font-extrabold text-gold-400 uppercase tracking-widest">Academic Rank Tier</div>
+                        <h4 className="text-base font-black text-white">{rankInfo.badge} Level {rankInfo.level}: {rankInfo.title}</h4>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-gold-300">{xpPoints} / {rankInfo.nextXP} XP</span>
+                    </div>
+
+                    <div className="w-full bg-obsidian-900 rounded-full h-3 border border-gold-500/30 overflow-hidden">
+                      <div className="bg-gradient-to-r from-gold-400 to-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(rankInfo.progress, 100)}%` }}></div>
+                    </div>
+                    <div className="text-[10px] text-slate-400 text-right">
+                      {rankInfo.level < 5 ? `Earn ${rankInfo.nextXP - xpPoints} more XP to reach next academic title.` : 'Max Academic Rank Achieved!'}
+                    </div>
+                  </div>
+
+                  {/* QUICK SATISFACTION SUMMARY */}
+                  <div className="p-4 rounded-xl bg-obsidian-900 border border-gold-500/20 flex justify-between items-center">
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">Satisfaction Status</div>
+                      <div className="text-xs font-semibold text-white mt-0.5">
+                        {userFeedback ? `${userFeedback.rating}★ Review Submitted: "${userFeedback.comment || 'Great experience'}"` : 'No rating submitted yet.'}
+                      </div>
+                    </div>
+                    <button onClick={onOpenFeedback} className="btn-outline-gold text-xs">
+                      {userFeedback ? 'Update Rating' : 'Submit Rating (+50 XP)'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: REWARDS & BADGES */}
+              {modalTab === 'rewards' && (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-bold text-xs text-gold-400 uppercase tracking-wider">Unlocked Academic Badges ({BADGES.filter(b => b.unlocked).length} / {BADGES.length})</h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {BADGES.map(badge => (
+                      <div 
+                        key={badge.id}
+                        className={`p-4 rounded-xl border transition-all ${badge.unlocked ? 'bg-gold-500/10 border-gold-400 text-white' : 'bg-obsidian-900/40 border-slate-800 text-slate-500 opacity-60'}`}
+                      >
+                        <div className="text-2xl mb-2">{badge.icon}</div>
+                        <h5 className="font-bold text-xs">{badge.title}</h5>
+                        <p className="text-[11px] text-slate-400 mt-1">{badge.desc}</p>
+                        <div className="mt-3">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${badge.unlocked ? 'bg-gold-500 text-obsidian-950' : 'bg-slate-800 text-slate-400'}`}>
+                            {badge.unlocked ? '✓ Unlocked' : 'Locked'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: ACTIVITY HISTORY */}
+              {modalTab === 'history' && (
+                <div className="space-y-3">
+                  <h4 className="font-bold text-xs text-gold-400 uppercase tracking-wider">Chronological Research Activity Log</h4>
+
+                  {activityHistory.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      No activities logged yet. Ingest documents or run AI tools to build your research log!
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {activityHistory.map(item => (
+                        <div key={item.id} className="p-3.5 rounded-xl bg-obsidian-900 border border-gold-500/20 flex justify-between items-start gap-4">
+                          <div className="flex items-start gap-3">
+                            <span className="text-lg mt-0.5">{item.icon}</span>
+                            <div>
+                              <div className="font-bold text-xs text-white">{item.title}</div>
+                              <p className="text-[11px] text-slate-300 italic mt-0.5">"{item.remark}"</p>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-xs font-bold text-gold-400 font-mono">+{item.amount} XP</span>
+                            <div className="text-[10px] text-slate-500">{item.timestamp}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 4: SATISFACTION */}
+              {modalTab === 'satisfaction' && (
+                <div className="space-y-4 text-center py-6">
+                  <div className="text-3xl">⭐</div>
+                  <h4 className="font-extrabold text-base">How Satisfied Are You With ScholarPulse AI?</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    Your evaluation helps refine RAG embeddings, citation accuracy, and research assistant benchmarks.
+                  </p>
+                  <button onClick={onOpenFeedback} className="btn-gold text-xs px-6 py-2.5 mt-2">
+                    {userFeedback ? 'Edit Satisfaction Review' : 'Give Satisfaction Review (+50 XP)'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // SATISFACTION FEEDBACK MODAL
+    // ==========================================
+    function SatisfactionFeedbackModal({ currentFeedback, onSaveFeedback, onClose }) {
+      const [rating, setRating] = useState(currentFeedback?.rating || 5);
+      const [comment, setComment] = useState(currentFeedback?.comment || '');
+      const [category, setCategory] = useState(currentFeedback?.category || 'Extremely Satisfied');
+
+      const RATING_LABELS = {
+        1: 'Needs Significant Improvement',
+        2: 'Fair / Average',
+        3: 'Good Academic Assistant',
+        4: 'Very Satisfied / High Quality',
+        5: '🌟 Extraordinary / Research Breakthrough!'
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onSaveFeedback({
+          rating,
+          category,
+          comment: comment.trim(),
+          submitted_at: new Date().toISOString()
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">⭐</span>
+                <h3 className="font-extrabold text-base">Platform Satisfaction Rating</h3>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* STAR SELECTOR */}
+              <div className="text-center space-y-2">
+                <div className="flex justify-center gap-2 text-3xl">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className={`transition-transform hover:scale-125 ${rating >= star ? 'text-gold-400' : 'text-slate-700'}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <div className="text-xs font-bold text-gold-400">{RATING_LABELS[rating]}</div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Primary Impression</label>
+                <select 
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="Extremely Satisfied">Extremely Satisfied (Best MCA AI Project)</option>
+                  <option value="Mendeley/Zotero Replacement">Better than Mendeley & Zotero</option>
+                  <option value="ScholarCast Audio Loved">ScholarCast Audio Deep Dive is Amazing</option>
+                  <option value="Reviewer 2 Audit Helpful">Reviewer #2 Flaw Roast is Super Helpful</option>
+                  <option value="Good but Needs More">Good, Has Room for Extra Features</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Researcher Feedback / Review</label>
+                <textarea
+                  rows="3"
+                  className="w-full text-xs p-3 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 mt-1"
+                  placeholder="Share what feature you liked most or suggestions for evaluation..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-obsidian-800 text-xs text-slate-300">Cancel</button>
+                <button type="submit" className="btn-gold text-xs px-5">
+                  Submit Rating & Claim +50 XP →
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 9: CITATIONS & BIBTEX STUDIO (MENDELEY / ZOTERO KILLER)
+    // ==========================================
+    function CitationsTab({ doc, onAwardXP }) {
+      const [citations, setCitations] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [copiedKey, setCopiedKey] = useState(null);
+
+      // Interactive Metadata Editor State
+      const [isEditing, setIsEditing] = useState(false);
+      const [metaTitle, setMetaTitle] = useState('');
+      const [metaAuthors, setMetaAuthors] = useState('');
+      const [metaYear, setMetaYear] = useState('');
+      const [metaJournal, setMetaJournal] = useState('');
+      const [metaDoi, setMetaDoi] = useState('');
+
+      useEffect(() => {
+        loadCitations();
+      }, [doc]);
+
+      const loadCitations = async () => {
+        setLoading(true);
+        try {
+          const data = await apiRequest(`/workspace/documents/${doc.id}/citations/`);
+          setCitations(data);
+          setMetaTitle(data.title || doc.title);
+          setMetaAuthors(Array.isArray(data.authors) ? data.authors.join(', ') : 'Author');
+          setMetaYear(data.year || '2024');
+          setMetaJournal(data.journal || 'Academic Research Journal');
+          setMetaDoi(data.doi || '');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleApplyMetadata = (e) => {
+        e?.preventDefault();
+        const authorsList = metaAuthors.split(',').map(a => a.trim()).filter(a => a.length > 0);
+        const authorsArr = authorsList.length > 0 ? authorsList : ['Author'];
+        const year = metaYear || '2024';
+        const title = metaTitle || doc.title;
+        const journal = metaJournal || 'Academic Journal';
+        const doi = metaDoi.trim();
+
+        const firstAuthor = authorsArr[0];
+        const firstAuthorSurname = firstAuthor.split(' ').slice(-1)[0] || 'Author';
+        const tagKey = `${firstAuthorSurname.toLowerCase()}${year}${title.split(' ')[0].toLowerCase().replace(/[^a-zA-Z0-9]/g, '')}`;
+
+        // Format authors for various standards
+        const apaAuthors = authorsArr.map(a => {
+          const parts = a.split(' ');
+          const surname = parts.slice(-1)[0];
+          const initial = parts[0] ? parts[0][0] + '.' : '';
+          return `${surname}, ${initial}`;
+        }).join(', ');
+
+        const ieeeAuthors = authorsArr.map(a => {
+          const parts = a.split(' ');
+          const surname = parts.slice(-1)[0];
+          const initial = parts[0] ? parts[0][0] + '.' : '';
+          return `${initial} ${surname}`;
+        }).join(', ');
+
+        const inText = authorsArr.length === 1 
+          ? `(${firstAuthorSurname}, ${year})`
+          : authorsArr.length === 2 
+            ? `(${authorsArr[0].split(' ').slice(-1)[0]} & ${authorsArr[1].split(' ').slice(-1)[0]}, ${year})`
+            : `(${firstAuthorSurname} et al., ${year})`;
+
+        const bibtex = `@article{${tagKey},
+  title={${title}},
+  author={${authorsArr.join(' and ')}},
+  journal={${journal}},
+  year={${year}}${doi ? `,\n  doi={${doi}}` : ''}
+}`;
+
+        const ris = `TY  - JOUR
+TI  - ${title}
+${authorsArr.map(a => `AU  - ${a}`).join('\n')}
+PY  - ${year}
+JO  - ${journal}
+${doi ? `DO  - ${doi}\n` : ''}ER  -`;
+
+        const updated = {
+          title,
+          authors: authorsArr,
+          year,
+          journal,
+          doi,
+          bibtex_key: tagKey,
+          in_text_citation: inText,
+          ieee_in_text: '[1]',
+          apa: `${apaAuthors} (${year}). ${title}. ${journal}.${doi ? ` https://doi.org/${doi}` : ''}`,
+          ieee: `${ieeeAuthors}, "${title}," ${journal}, ${year}.${doi ? ` doi: ${doi}` : ''}`,
+          harvard: `${firstAuthorSurname}, ${firstAuthor[0] || 'A'} ${year}, '${title}', ${journal}.`,
+          mla: `${firstAuthorSurname}, ${firstAuthor.split(' ')[0] || ''} et al. "${title}." ${journal} (${year}).`,
+          chicago: `${firstAuthorSurname}, ${firstAuthor.split(' ')[0] || ''} et al. "${title}." ${journal} (${year}).`,
+          bibtex,
+          ris
+        };
+
+        setCitations(updated);
+        setIsEditing(false);
+        if (onAwardXP) onAwardXP(20, 'Citation Metadata Refined', `Customized author citation standard for '${title}'.`, '✏️');
+      };
+
+      const copyToClipboard = (text, key) => {
+        navigator.clipboard.writeText(text);
+        setCopiedKey(key);
+        setTimeout(() => setCopiedKey(null), 2000);
+        if (onAwardXP) onAwardXP(15, 'Citation Formatted', `Copied ${key.toUpperCase()} reference string for publication bibliography.`, '📜');
+      };
+
+      if (loading) {
+        return (
+          <div className="glass-card p-12 text-center">
+            <div className="inline-block animate-spin text-2xl text-gold-400 mb-2">⚡</div>
+            <p className="text-xs text-slate-400">Formatting academic bibliographic citations across all standards...</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="space-y-6">
+          {/* TOP EXPORT DOCK & ACTION TOOLBAR */}
+          <div className="glass-card p-6 border-gold-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎓</span>
+                <div>
+                  <h3 className="font-extrabold text-base">Academic Citation Matrix & Exporter</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Authoritative Mendeley, Zotero, Overleaf & EndNote bibliographic engine</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className="px-3.5 py-2 rounded-xl bg-obsidian-800 border border-gold-500/40 text-gold-300 text-xs font-bold hover:border-gold-300 transition-all flex items-center gap-1.5"
+              >
+                <span>✏️</span> <span>{isEditing ? 'Hide Editor' : 'Edit Authors / Metadata'}</span>
+              </button>
+              <button 
+                onClick={() => {
+                  triggerDownload(citations.bibtex, `${citations.bibtex_key || 'citation'}.bib`, 'application/x-bibtex');
+                  if (onAwardXP) onAwardXP(25, 'BibTeX Exported', 'Downloaded Overleaf-compatible .bib bibliography file.', '📥');
+                }}
+                className="btn-gold text-xs flex items-center gap-2 shadow-md"
+              >
+                <span>📥</span> Download .BIB (Overleaf)
+              </button>
+              <button 
+                onClick={() => {
+                  triggerDownload(citations.ris, `${citations.bibtex_key || 'citation'}.ris`, 'application/x-research-info-systems');
+                  if (onAwardXP) onAwardXP(25, 'RIS Exported', 'Downloaded Zotero/Mendeley-compatible .ris citation file.', '📥');
+                }}
+                className="btn-outline-gold text-xs flex items-center gap-2"
+              >
+                <span>📥</span> Download .RIS (Mendeley)
+              </button>
+            </div>
+          </div>
+
+          {/* INTERACTIVE METADATA & AUTHORS EDITOR */}
+          {isEditing && (
+            <form onSubmit={handleApplyMetadata} className="glass-card p-5 border-gold-400 bg-obsidian-950/90 space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-gold-500/20 pb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-gold-400">✏️ Refine Authors, Title & Publication Metadata</span>
+                <span className="text-[10px] text-slate-400">Updates all APA, IEEE, MLA & BibTeX entries live</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Paper Title</label>
+                  <input 
+                    type="text" 
+                    className="w-full text-xs px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                    value={metaTitle}
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Author(s) (Comma separated)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Seth Gilbert, Nancy Lynch"
+                    className="w-full text-xs px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                    value={metaAuthors}
+                    onChange={(e) => setMetaAuthors(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Journal / Conference / Venue</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. ACM SIGACT News / IEEE Transactions"
+                    className="w-full text-xs px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                    value={metaJournal}
+                    onChange={(e) => setMetaJournal(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Publication Year</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 2002"
+                      className="w-full text-xs px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                      value={metaYear}
+                      onChange={(e) => setMetaYear(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">DOI (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 10.1145/564585.564601"
+                      className="w-full text-xs px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400 font-mono"
+                      value={metaDoi}
+                      onChange={(e) => setMetaDoi(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-slate-300">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-gold text-xs px-5">
+                  Apply & Recalculate All Citations →
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* IN-TEXT CITATIONS ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="glass-card p-4 flex justify-between items-center">
+              <div>
+                <div className="text-[10px] font-bold text-gold-400 uppercase tracking-wider">In-Text Citation (Author-Date)</div>
+                <div className="font-mono text-sm mt-1 font-bold text-white">{citations.in_text_citation}</div>
+              </div>
+              <button 
+                onClick={() => copyToClipboard(citations.in_text_citation, 'intext')}
+                className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-gold-400 border border-gold-500/30 hover:border-gold-400"
+              >
+                {copiedKey === 'intext' ? '✓ Copied' : 'Copy'}
+              </button>
+            </div>
+
+            <div className="glass-card p-4 flex justify-between items-center">
+              <div>
+                <div className="text-[10px] font-bold text-gold-400 uppercase tracking-wider">IEEE In-Text Index</div>
+                <div className="font-mono text-sm mt-1 font-bold text-white">{citations.ieee_in_text || '[1]'}</div>
+              </div>
+              <button 
+                onClick={() => copyToClipboard(citations.ieee_in_text || '[1]', 'ieee_tag')}
+                className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-gold-400 border border-gold-500/30 hover:border-gold-400"
+              >
+                {copiedKey === 'ieee_tag' ? '✓ Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* STANDARD FORMATS TABLE */}
+          <div className="glass-card p-6 space-y-5">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-2">
+              <h4 className="font-bold text-sm text-gold-400 uppercase tracking-wider">Formatted Bibliographic Entries</h4>
+              <span className="text-[10px] text-slate-400">Standardized Reference Strings</span>
+            </div>
+
+            {[
+              { id: 'apa', label: 'APA 7th Edition', text: citations.apa },
+              { id: 'ieee', label: 'IEEE Style', text: citations.ieee },
+              { id: 'harvard', label: 'Harvard Reference Format', text: citations.harvard },
+              { id: 'mla', label: 'MLA 9th Edition', text: citations.mla },
+              { id: 'chicago', label: 'Chicago Manual of Style', text: citations.chicago }
+            ].map(item => (
+              <div key={item.id} className="p-4 rounded-xl bg-obsidian-900/70 border border-gold-500/20 flex justify-between items-start gap-4 hover:border-gold-400/50 transition-all">
+                <div className="space-y-1.5 flex-1">
+                  <span className="text-[10px] font-extrabold text-gold-400 uppercase tracking-wider">{item.label}</span>
+                  <p className="text-xs leading-relaxed font-serif text-slate-200">{item.text}</p>
+                </div>
+                <button 
+                  onClick={() => copyToClipboard(item.text, item.id)}
+                  className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-gold-400 border border-gold-500/30 hover:border-gold-400 whitespace-nowrap shadow"
+                >
+                  {copiedKey === item.id ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* BIBTEX CODE CONTAINER */}
+          <div className="glass-card p-6 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-xs text-gold-400 uppercase tracking-wider">Raw BibTeX Record</span>
+              <button 
+                onClick={() => copyToClipboard(citations.bibtex, 'raw_bib')}
+                className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-gold-400 border border-gold-500/30 hover:border-gold-400"
+              >
+                {copiedKey === 'raw_bib' ? '✓ Copied' : 'Copy BibTeX'}
+              </button>
+            </div>
+            <pre className="p-4 rounded-xl bg-obsidian-950 border border-gold-500/20 text-xs font-mono text-gold-300 overflow-x-auto leading-relaxed">
+              {citations.bibtex}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 11: SCHOLARCAST DUAL-HOST PODCAST (NOTEBOOKLM KILLER)
+    // ==========================================
+    function ScholarCastTab({ doc, onAwardXP }) {
+      const [podcast, setPodcast] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [currentTurnIndex, setCurrentTurnIndex] = useState(-1);
+      const [playbackRate, setPlaybackRate] = useState(1.0);
+      const speechUtteranceRef = useRef(null);
+
+      useEffect(() => {
+        loadPodcast();
+        return () => {
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+        };
+      }, [doc]);
+
+      const loadPodcast = async () => {
+        setLoading(true);
+        try {
+          const data = await apiRequest(`/workspace/documents/${doc.id}/podcast/`, { method: 'POST' });
+          setPodcast(data);
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const startPlayback = (startIndex = 0) => {
+        if (!podcast || !podcast.dialogue || podcast.dialogue.length === 0) return;
+        if (!('speechSynthesis' in window)) {
+          alert('Web Speech API is not supported in your browser.');
+          return;
+        }
+
+        window.speechSynthesis.cancel();
+        setIsPlaying(true);
+        playTurn(startIndex);
+        if (onAwardXP && startIndex === 0) {
+          onAwardXP(40, 'ScholarCast Deep Dive', `Listening to 2-host audio podcast analysis of '${doc.title}'.`, '🎙️');
+        }
+      };
+
+      const playTurn = (index) => {
+        if (!podcast || !podcast.dialogue || index >= podcast.dialogue.length) {
+          setIsPlaying(false);
+          setCurrentTurnIndex(-1);
+          return;
+        }
+
+        setCurrentTurnIndex(index);
+        const item = podcast.dialogue[index];
+        const utterance = new SpeechSynthesisUtterance(item.text);
+        utterance.rate = playbackRate;
+
+        if (item.speaker.includes('Vance') || item.role.includes('Scientist')) {
+          utterance.pitch = 1.15;
+        } else {
+          utterance.pitch = 0.85;
+        }
+
+        utterance.onend = () => {
+          playTurn(index + 1);
+        };
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
+
+        speechUtteranceRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      };
+
+      const stopPlayback = () => {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        setIsPlaying(false);
+        setCurrentTurnIndex(-1);
+      };
+
+      const togglePlayPause = () => {
+        if (isPlaying) {
+          stopPlayback();
+        } else {
+          startPlayback(currentTurnIndex >= 0 ? currentTurnIndex : 0);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div className="glass-card p-12 text-center">
+            <div className="inline-block animate-spin text-3xl text-gold-400 mb-3">🎙️</div>
+            <h3 className="font-bold text-sm">Synthesizing ScholarCast Deep Dive Podcast...</h3>
+            <p className="text-xs text-slate-400 mt-1">Generating 2-host conversational dialogue and audio cues.</p>
+          </div>
+        );
+      }
+
+      if (!podcast) return null;
+
+      return (
+        <div className="space-y-6">
+          {/* PODCAST PLAYER HERO */}
+          <div className="glass-card p-6 border-gold-500/30 bg-gradient-to-r from-gold-500/10 via-transparent to-purple-500/10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/20 text-gold-400 text-[10px] font-extrabold uppercase tracking-wider mb-2">
+                  <span>🎙️</span> AI Research Podcast • Dual Host
+                </div>
+                <h3 className="text-xl font-black">{podcast.episode_title}</h3>
+                <p className="text-xs text-slate-400 mt-1">{podcast.key_takeaway}</p>
+              </div>
+
+              {/* DUAL HOST BADGES */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-obsidian-800/80 border border-gold-500/30">
+                  <span className="text-base">👩‍🔬</span>
+                  <div className="text-left text-[11px]">
+                    <div className="font-bold text-gold-300">Dr. Evelyn Vance</div>
+                    <div className="text-slate-400 text-[9px]">Lead Scientist</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-obsidian-800/80 border border-cyan-500/30">
+                  <span className="text-base">👨‍💻</span>
+                  <div className="text-left text-[11px]">
+                    <div className="font-bold text-cyan-300">Marcus</div>
+                    <div className="text-slate-400 text-[9px]">Systems Analyst</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AUDIO CONTROL BAR */}
+            <div className="p-4 rounded-xl bg-obsidian-950/80 border border-gold-500/30 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={togglePlayPause} 
+                  className="btn-gold text-xs px-5 py-2.5 flex items-center gap-2"
+                >
+                  <span>{isPlaying ? '⏸️ Pause' : '▶️ Play Podcast'}</span>
+                </button>
+                {isPlaying && (
+                  <button 
+                    onClick={stopPlayback} 
+                    className="px-3 py-2 rounded-lg bg-obsidian-800 border border-slate-700 text-xs text-slate-300 hover:text-white"
+                  >
+                    ⏹️ Stop
+                  </button>
+                )}
+              </div>
+
+              {/* WAVEFORM VISUALIZER */}
+              <div className="flex items-center gap-1 h-8 px-4">
+                {[...Array(8)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`wave-bar ${!isPlaying ? 'opacity-30 !animation-none !h-2' : ''}`}
+                  ></div>
+                ))}
+              </div>
+
+              {/* SPEED CONTROLS */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Speed:</span>
+                {[1.0, 1.25, 1.5].map(rate => (
+                  <button 
+                    key={rate} 
+                    onClick={() => setPlaybackRate(rate)}
+                    className={`px-2 py-1 rounded text-[11px] font-mono ${playbackRate === rate ? 'bg-gold-500 text-obsidian-950 font-bold' : 'bg-obsidian-800 text-slate-400 hover:text-white'}`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SYNCHRONIZED TRANSCRIPT DIALOGUE */}
+          <div className="glass-card p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <span className="font-bold text-xs text-gold-400 uppercase tracking-wider">Synchronized Podcast Script</span>
+              <button 
+                onClick={() => {
+                  const textContent = podcast.dialogue.map(d => `[${d.speaker}]: ${d.text}`).join('\n\n');
+                  triggerDownload(textContent, `${doc.title}_podcast_transcript.txt`);
+                }}
+                className="text-xs text-gold-400 hover:underline"
+              >
+                📥 Download Transcript (.txt)
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {podcast.dialogue.map((item, idx) => {
+                const isDrVance = item.speaker.includes('Vance');
+                const isCurrent = currentTurnIndex === idx;
+
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => startPlayback(idx)}
+                    className={`p-4 rounded-xl transition-all cursor-pointer border ${isCurrent ? 'bg-gold-500/15 border-gold-400 ring-1 ring-gold-400 shadow-md' : isDrVance ? 'bg-obsidian-800/30 border-gold-500/20 hover:border-gold-500/40' : 'bg-obsidian-800/30 border-cyan-500/20 hover:border-cyan-500/40'}`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{isDrVance ? '👩‍🔬' : '👨‍💻'}</span>
+                        <span className={`font-bold text-xs ${isDrVance ? 'text-gold-400' : 'text-cyan-400'}`}>{item.speaker}</span>
+                        <span className="text-[10px] text-slate-500">({item.role})</span>
+                      </div>
+                      {isCurrent && (
+                        <span className="px-2 py-0.5 rounded bg-gold-500 text-obsidian-950 text-[9px] font-extrabold uppercase animate-pulse">
+                          Speaking Now
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed font-sans pl-6">
+                      {item.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 12: REVIEWER #2 CRITICAL ROAST & RIGOR AUDITOR
+    // ==========================================
+    function CriticalRoastTab({ doc, onAwardXP }) {
+      const [roast, setRoast] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        loadRoast();
+      }, [doc]);
+
+      const loadRoast = async () => {
+        setLoading(true);
+        try {
+          const data = await apiRequest(`/workspace/documents/${doc.id}/roast/`, { method: 'POST' });
+          setRoast(data);
+          if (onAwardXP) onAwardXP(60, 'Reviewer #2 Rigor Audit', `Subjected '${doc.title}' to ruthless peer review (Score: ${data.rigor_score}/100).`, '⚔️');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div className="glass-card p-12 text-center">
+            <div className="inline-block animate-spin text-3xl text-rose-500 mb-3">⚔️</div>
+            <h3 className="font-bold text-sm">Reviewer #2 is Dissecting Your Paper...</h3>
+            <p className="text-xs text-slate-400 mt-1">Auditing scientific rigor, baseline validity, and statistical integrity.</p>
+          </div>
+        );
+      }
+
+      if (!roast) return null;
+
+      const scoreColor = roast.rigor_score >= 80 ? 'text-emerald-400' : roast.rigor_score >= 60 ? 'text-amber-400' : 'text-rose-500';
+
+      return (
+        <div className="space-y-6">
+          {/* SCORE & VERDICT BANNER */}
+          <div className="glass-card p-6 border-rose-500/30 bg-gradient-to-r from-rose-500/10 via-transparent to-amber-500/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-wider">
+                <span>⚔️</span> Peer Review Simulator
+              </div>
+              <h3 className="text-lg font-black">Official Recommendation: <span className="text-rose-400">{roast.verdict}</span></h3>
+              <p className="text-xs text-slate-300 italic">"{roast.executive_roast}"</p>
+            </div>
+
+            {/* RIGOR GAUGE */}
+            <div className="text-center p-4 rounded-2xl bg-obsidian-950 border border-gold-500/30 min-w-[140px]">
+              <div className={`text-4xl font-black ${scoreColor}`}>{roast.rigor_score}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Rigor Score / 100</div>
+            </div>
+          </div>
+
+          {/* FATAL FLAWS */}
+          <div className="glass-card p-6 space-y-4 border-rose-500/30">
+            <div className="flex items-center gap-2 border-b border-rose-500/20 pb-2">
+              <span className="text-lg">🚨</span>
+              <h4 className="font-bold text-sm text-rose-400 uppercase tracking-wider">Fatal Flaws & Methodological Gaps</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {roast.fatal_flaws?.map((f, i) => (
+                <div key={i} className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-1">
+                  <div className="font-bold text-xs text-rose-300">{f.flaw}</div>
+                  <div className="text-xs text-slate-300 leading-relaxed">{f.detail}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DETAILED CRITIQUE */}
+          <div className="glass-card p-6 space-y-3">
+            <h4 className="font-bold text-xs text-gold-400 uppercase tracking-wider">Deep Methodological Critique</h4>
+            <p className="text-xs text-slate-300 leading-relaxed font-serif text-sm">
+              {roast.methodological_critique}
+            </p>
+          </div>
+
+          {/* THREATS & DIRECTIVES ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-card p-6 space-y-3">
+              <h4 className="font-bold text-xs text-amber-400 uppercase tracking-wider">⚠️ Threats to Validity</h4>
+              <ul className="space-y-2">
+                {roast.threats_to_validity?.map((t, i) => (
+                  <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
+                    <span className="text-amber-400">•</span>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="glass-card p-6 space-y-3 border-emerald-500/30">
+              <h4 className="font-bold text-xs text-emerald-400 uppercase tracking-wider">🛡️ Defense Directives (To Pass Review)</h4>
+              <ul className="space-y-2">
+                {roast.defense_directives?.map((d, i) => (
+                  <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
+                    <span className="text-emerald-400">✓</span>
+                    <span>{d}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 13: FORMULA & ALGORITHM TO CODE
+    // ==========================================
+    function FormulaCodeTab({ doc, onAwardXP }) {
+      const [formulaData, setFormulaData] = useState(null);
+      const [query, setQuery] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [copied, setCopied] = useState(false);
+
+      useEffect(() => {
+        loadFormula();
+      }, [doc]);
+
+      const loadFormula = async (customQuery = '') => {
+        setLoading(true);
+        try {
+          const data = await apiRequest(`/workspace/documents/${doc.id}/formula-code/`, { 
+            method: 'POST', 
+            body: { query: customQuery } 
+          });
+          setFormulaData(data);
+          if (onAwardXP) onAwardXP(40, 'Formula-to-Code Compiled', `Compiled '${data.formula_name}' into executable Python/PyTorch logic.`, '🧮');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const copyCode = () => {
+        if (!formulaData?.python_code) return;
+        navigator.clipboard.writeText(formulaData.python_code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      };
+
+      return (
+        <div className="space-y-6">
+          {/* SEARCH/PROMPT BAR */}
+          <div className="glass-card p-4 flex gap-3">
+            <input 
+              type="text"
+              className="flex-1 text-xs px-4 py-2.5 rounded-xl bg-obsidian-950 border border-gold-500/30 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"
+              placeholder="Target equation / formula (e.g. Attention mechanism, Loss function, Cosine similarity)..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && loadFormula(query)}
+            />
+            <button 
+              onClick={() => loadFormula(query)} 
+              disabled={loading}
+              className="btn-gold text-xs px-5"
+            >
+              {loading ? 'Synthesizing...' : 'Compile to Code'}
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="glass-card p-12 text-center">
+              <div className="inline-block animate-spin text-3xl text-gold-400 mb-3">🧮</div>
+              <h3 className="font-bold text-sm">Compiling Mathematical Notation into PyTorch/Python...</h3>
+            </div>
+          ) : formulaData ? (
+            <div className="space-y-6">
+              {/* FORMULA CARD */}
+              <div className="glass-card p-6 border-gold-500/30 space-y-4">
+                <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">📐</span>
+                    <h3 className="font-black text-base text-gold-400">{formulaData.formula_name}</h3>
+                  </div>
+                  <span className="px-2.5 py-1 rounded bg-obsidian-800 text-[10px] font-mono text-slate-300 border border-gold-500/30">
+                    {formulaData.complexity_analysis}
+                  </span>
+                </div>
+
+                {/* LATEX / MATH DISPLAY */}
+                <div className="p-4 rounded-xl bg-obsidian-950 border border-gold-500/20 text-center font-mono text-sm text-gold-300 overflow-x-auto">
+                  {formulaData.latex_notation}
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {formulaData.mathematical_explanation}
+                </p>
+
+                {/* VARIABLES TABLE */}
+                {formulaData.variable_definitions?.length > 0 && (
+                  <div className="pt-2">
+                    <span className="text-[10px] font-bold text-gold-400 uppercase tracking-wider">Symbol Breakdown:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                      {formulaData.variable_definitions.map((v, i) => (
+                        <div key={i} className="p-2 rounded bg-obsidian-800/50 text-xs border border-slate-700/50 flex gap-2">
+                          <span className="font-mono font-bold text-gold-400">{v.symbol}:</span>
+                          <span className="text-slate-300">{v.description}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* CODE IMPLEMENTATION */}
+              <div className="glass-card p-6 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-xs text-gold-400 uppercase tracking-wider">Executable Python / PyTorch Implementation</span>
+                  <button 
+                    onClick={copyCode}
+                    className="px-3 py-1.5 rounded-lg bg-obsidian-800 text-xs text-gold-400 border border-gold-500/30 hover:border-gold-400"
+                  >
+                    {copied ? '✓ Code Copied' : 'Copy Code'}
+                  </button>
+                </div>
+                <pre className="p-4 rounded-xl bg-obsidian-950 border border-gold-500/20 text-xs font-mono text-slate-200 overflow-x-auto">
+                  {formulaData.python_code}
+                </pre>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 10: CROSS-PAPER SYNTHESIS MODAL (ELICIT / SCISPACE KILLER)
+    // ==========================================
+    function CrossPaperMatrixModal({ docIds, documents, onClose }) {
+      const [matrix, setMatrix] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        generateMatrix();
+      }, [docIds]);
+
+      const generateMatrix = async () => {
+        setLoading(true);
+        try {
+          const data = await apiRequest('/workspace/documents/cross-matrix/', {
+            method: 'POST',
+            body: { doc_ids: docIds }
+          });
+          setMatrix(data);
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const exportCSV = () => {
+        if (!matrix || !matrix.papers) return;
+        const headers = ["Title", "Domain", "Objective", "Methodology", "Dataset & Scale", "Key Findings", "Limitations"];
+        const rows = matrix.papers.map(p => [
+          `"${p.title.replace(/"/g, '""')}"`,
+          `"${p.domain.replace(/"/g, '""')}"`,
+          `"${p.objective.replace(/"/g, '""')}"`,
+          `"${p.methodology.replace(/"/g, '""')}"`,
+          `"${p.dataset_scale.replace(/"/g, '""')}"`,
+          `"${p.key_findings.replace(/"/g, '""')}"`,
+          `"${p.limitations.replace(/"/g, '""')}"`
+        ]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        triggerDownload(csvContent, 'Cross_Paper_Synthesis_Matrix.csv', 'text/csv');
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-5xl w-full max-h-[90vh] flex flex-col p-6 border-gold-400 bg-obsidian-950 shadow-2xl">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center pb-4 border-b border-gold-500/20">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📊</span>
+                <div>
+                  <h3 className="font-extrabold text-lg">Cross-Literature Synthesis Matrix</h3>
+                  <p className="text-xs text-slate-400">Comparing {docIds.length} Selected Papers</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {matrix && (
+                  <button onClick={exportCSV} className="btn-gold text-xs flex items-center gap-1.5">
+                    <span>📥</span> Export CSV
+                  </button>
+                )}
+                <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">✕</button>
+              </div>
+            </div>
+
+            {/* CONTENT */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-6">
+              {loading ? (
+                <div className="py-20 text-center space-y-3">
+                  <div className="inline-block animate-spin text-3xl text-gold-400">⚡</div>
+                  <h4 className="font-bold text-sm">Synthesizing Comparative Literature Matrix...</h4>
+                  <p className="text-xs text-slate-400">Analyzing objectives, methodologies, metrics, and literature gaps.</p>
+                </div>
+              ) : matrix ? (
+                <>
+                  {/* COMPARISON TABLE */}
+                  <div className="overflow-x-auto rounded-xl border border-gold-500/30">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-obsidian-900 border-b border-gold-500/30 text-gold-400 font-bold uppercase text-[10px]">
+                          <th className="p-3">Paper</th>
+                          <th className="p-3">Core Problem & Objective</th>
+                          <th className="p-3">Methodology / Architecture</th>
+                          <th className="p-3">Dataset / Scale</th>
+                          <th className="p-3">Key Metrics / Findings</th>
+                          <th className="p-3">Critical Limitations</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {matrix.papers?.map((p, i) => (
+                          <tr key={i} className="hover:bg-gold-500/5">
+                            <td className="p-3 font-bold text-white align-top min-w-[140px]">{p.title}</td>
+                            <td className="p-3 text-slate-300 align-top min-w-[160px]">{p.objective}</td>
+                            <td className="p-3 text-slate-300 align-top min-w-[160px]">{p.methodology}</td>
+                            <td className="p-3 text-slate-300 align-top min-w-[130px] font-mono text-[11px]">{p.dataset_scale}</td>
+                            <td className="p-3 text-gold-300 align-top min-w-[150px] font-semibold">{p.key_findings}</td>
+                            <td className="p-3 text-rose-300 align-top min-w-[140px]">{p.limitations}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* SYNTHESIS INSIGHTS ROW */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-obsidian-900 border border-emerald-500/30 space-y-2">
+                      <span className="font-bold text-xs text-emerald-400 uppercase tracking-wider">🤝 Major Consensus Points</span>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        {matrix.consensus_points?.map((c, i) => (
+                          <li key={i} className="flex gap-2"><span>•</span><span>{c}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-obsidian-900 border border-amber-500/30 space-y-2">
+                      <span className="font-bold text-xs text-amber-400 uppercase tracking-wider">⚡ Divergence & Conflicts</span>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        {matrix.divergence_points?.map((d, i) => (
+                          <li key={i} className="flex gap-2"><span>•</span><span>{d}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* LITERATURE GAP */}
+                  <div className="p-4 rounded-xl bg-gold-500/10 border border-gold-500/40 space-y-1">
+                    <span className="font-bold text-xs text-gold-400 uppercase tracking-wider">🔭 Overarching Literature Gap</span>
+                    <p className="text-xs text-slate-200 leading-relaxed font-serif text-sm">
+                      {matrix.literature_gap}
+                    </p>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // MODULE 14: DOI & ARXIV AUTO-RESOLVER MODAL
+    // ==========================================
+    function ExternalResolverModal({ onClose, onSuccess }) {
+      const [identifier, setIdentifier] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+
+      const handleResolve = async () => {
+        if (!identifier.trim()) return;
+        setLoading(true);
+        setError('');
+        try {
+          const res = await apiRequest('/workspace/documents/resolve-external/', {
+            method: 'POST',
+            body: { identifier, save_to_workspace: true }
+          });
+          onSuccess(res.document);
+        } catch(e) {
+          setError(e.message || 'Failed to resolve DOI / ArXiv ID');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-lg w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🌐</span>
+                <h3 className="font-extrabold text-base">1-Click DOI / arXiv Paper Ingestion</h3>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Paste any DOI (e.g. <span className="font-mono text-gold-400">10.1145/3318464</span>), arXiv ID (e.g. <span className="font-mono text-gold-400">1706.03762</span>), or paper title to auto-fetch metadata, abstracts, and vector-index it.
+            </p>
+
+            <div className="space-y-2">
+              <input 
+                type="text"
+                className="w-full text-xs px-4 py-3 rounded-xl bg-obsidian-900 border border-gold-500/40 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 font-mono"
+                placeholder="e.g. 1706.03762 or 10.1145/..."
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleResolve()}
+              />
+              {error && <p className="text-xs text-rose-400">{error}</p>}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={onClose} className="px-4 py-2 rounded-xl bg-obsidian-800 text-xs text-slate-300">Cancel</button>
+              <button 
+                onClick={handleResolve} 
+                disabled={loading || !identifier.trim()}
+                className="btn-gold text-xs px-5"
+              >
+                {loading ? 'Resolving & Vectorizing...' : 'Fetch & Ingest Paper →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // UNIVERSAL COMMAND PALETTE (CTRL+K / CMD+K)
+    // ==========================================
+    function CommandHubModal({ onClose, documents, onSelectDoc, onTriggerUpload, onTriggerExternal, onTriggerAnalytics, onToggleTheme }) {
+      const [query, setQuery] = useState('');
+      const inputRef = useRef(null);
+
+      useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, []);
+
+      const filteredDocs = documents.filter(d => d.title.toLowerCase().includes(query.toLowerCase()));
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-start justify-center pt-20 p-4" onClick={onClose}>
+          <div className="glass-card max-w-xl w-full p-4 border-gold-400 bg-obsidian-950 shadow-2xl space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-obsidian-900 border border-gold-500/30">
+              <span className="text-gold-400">⚡</span>
+              <input 
+                ref={inputRef}
+                type="text"
+                className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
+                placeholder="Search commands, papers, or view analytics (ESC to exit)..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && onClose()}
+              />
+              <kbd className="text-[10px] text-slate-500 font-mono">ESC</kbd>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+              <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1">Quick Actions</div>
+              <div onClick={onTriggerAnalytics} className="p-2.5 rounded-lg text-xs hover:bg-gold-500/20 cursor-pointer flex items-center gap-2 text-slate-200">
+                <span>📊</span> View Usage Analytics, Rewards & History Log
+              </div>
+              <div onClick={onTriggerExternal} className="p-2.5 rounded-lg text-xs hover:bg-gold-500/20 cursor-pointer flex items-center gap-2 text-slate-200">
+                <span>🌐</span> Ingest Paper from DOI / arXiv
+              </div>
+              <div onClick={onTriggerUpload} className="p-2.5 rounded-lg text-xs hover:bg-gold-500/20 cursor-pointer flex items-center gap-2 text-slate-200">
+                <span>📤</span> Upload Local PDF / Document / Image
+              </div>
+              <div onClick={() => { onToggleTheme(); onClose(); }} className="p-2.5 rounded-lg text-xs hover:bg-gold-500/20 cursor-pointer flex items-center gap-2 text-slate-200">
+                <span>🌓</span> Toggle Dark / Light Theme
+              </div>
+
+              {filteredDocs.length > 0 && (
+                <>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1 mt-2">Open Research Paper</div>
+                  {filteredDocs.map(doc => (
+                    <div 
+                      key={doc.id} 
+                      onClick={() => onSelectDoc(doc)}
+                      className="p-2.5 rounded-lg text-xs hover:bg-gold-500/20 cursor-pointer flex items-center justify-between text-slate-200"
+                    >
+                      <span className="truncate max-w-sm">📄 {doc.title}</span>
+                      <span className="text-[10px] text-gold-400">Open Studio →</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // RAG CHAT & SUMMARY TAB
+    // ==========================================
+    function ChatTab({ doc, onAwardXP }) {
+      const [messages, setMessages] = useState([]);
+      const [input, setInput] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [summary, setSummary] = useState(doc.summary || '');
+      const [summaryShort, setSummaryShort] = useState(doc.summary_short || '');
+      const [summaryMode, setSummaryMode] = useState('detailed');
+      const [summarizing, setSummarizing] = useState(false);
+
+      useEffect(() => {
+        setSummary(doc.summary || '');
+        setSummaryShort(doc.summary_short || '');
+      }, [doc]);
+
+      const handleSend = async (e) => {
+        e.preventDefault();
+        if (!input.trim() || loading) return;
+
+        const userMsg = { sender: 'user', text: input };
+        setMessages(prev => [...prev, userMsg]);
+        setInput('');
+        setLoading(true);
+
+        try {
+          const res = await apiRequest(`/workspace/documents/${doc.id}/chat/`, {
+            method: 'POST',
+            body: { question: userMsg.text }
+          });
+          setMessages(prev => [...prev, { sender: 'ai', text: res.answer }]);
+          if (onAwardXP) onAwardXP(10, 'Grounded RAG Query', `Explored semantic vector context for '${doc.title}'.`, '💬');
+        } catch (err) {
+          setMessages(prev => [...prev, { sender: 'ai', text: 'Error generating response: ' + err.message }]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleSummarize = async (mode) => {
+        setSummaryMode(mode);
+        setSummarizing(true);
+        try {
+          const res = await apiRequest(`/workspace/documents/${doc.id}/summarize/`, {
+            method: 'POST',
+            body: { mode }
+          });
+          if (mode === 'short') setSummaryShort(res.summary_short);
+          else setSummary(res.summary);
+          if (onAwardXP) onAwardXP(30, 'Deep Summary Generated', `Compiled a ${mode} structured literature abstract for '${doc.title}'.`, '📄');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setSummarizing(false);
+        }
+      };
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* CHAT WINDOW */}
+          <div className="lg:col-span-7 flex flex-col h-[600px] glass-card p-4">
+            <div className="flex items-center gap-2 border-b border-gold-500/20 pb-3 mb-3">
+              <span className="text-xl">💬</span>
+              <h3 className="font-bold text-sm">Interactive RAG Copilot</h3>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-xl text-gold-400">
+                    💡
+                  </div>
+                  <h4 className="font-bold text-xs">Ask Grounded Research Questions</h4>
+                  <p className="text-[11px] text-slate-400 max-w-sm">
+                    Inquire about mathematical proofs, baseline comparisons, dataset specifics, or request code expansions.
+                  </p>
+                </div>
+              ) : (
+                messages.map((m, idx) => (
+                  <div key={idx} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${m.sender === 'user' ? 'bg-gold-500 text-obsidian-950 font-medium' : 'bg-obsidian-900/80 border border-gold-500/20 text-slate-200'}`}>
+                      {m.sender === 'ai' ? (
+                        <div dangerouslySetInnerHTML={{ __html: marked.parse(m.text) }} />
+                      ) : (
+                        m.text
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+              {loading && (
+                <div className="flex items-center gap-2 text-xs text-gold-400">
+                  <span className="animate-spin">⚡</span> Retrieving grounded context from ChromaDB...
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSend} className="mt-3 flex gap-2">
+              <input
+                type="text"
+                className="flex-1 text-xs px-4 py-2.5 rounded-xl bg-obsidian-950 border border-gold-500/30 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"
+                placeholder="Ask about this paper..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+              <button type="submit" disabled={loading || !input.trim()} className="btn-gold text-xs px-4">
+                Send
+              </button>
+            </form>
+          </div>
+
+          {/* SUMMARY PANEL */}
+          <div className="lg:col-span-5 glass-card p-5 flex flex-col h-[600px]">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📄</span>
+                <h3 className="font-bold text-sm">Deep Abstract & Summary</h3>
+              </div>
+              <div className="flex gap-1 bg-obsidian-950 p-1 rounded-lg border border-gold-500/30">
+                <button 
+                  onClick={() => handleSummarize('short')}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold ${summaryMode === 'short' ? 'bg-gold-500 text-obsidian-950' : 'text-slate-400'}`}
+                >
+                  Executive
+                </button>
+                <button 
+                  onClick={() => handleSummarize('detailed')}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold ${summaryMode === 'detailed' ? 'bg-gold-500 text-obsidian-950' : 'text-slate-400'}`}
+                >
+                  Detailed
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1 text-xs leading-relaxed">
+              {summarizing ? (
+                <div className="h-full flex items-center justify-center text-xs text-gold-400">
+                  <span className="animate-spin mr-2">⚡</span> Generating structured summary...
+                </div>
+              ) : (summaryMode === 'short' ? summaryShort : summary) ? (
+                <div 
+                  className="space-y-3 prose dark:prose-invert prose-xs max-w-none text-slate-300"
+                  dangerouslySetInnerHTML={{ __html: marked.parse(summaryMode === 'short' ? summaryShort : summary) }}
+                />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+                  <p className="text-xs text-slate-400">No summary generated yet.</p>
+                  <button onClick={() => handleSummarize('detailed')} className="btn-gold text-xs">
+                    Generate Comprehensive Summary
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // EXPLAIN MODE (4 TIERS)
+    // ==========================================
+    function ExplainTab({ doc, userLevel, onAwardXP }) {
+      const [academicLevel, setAcademicLevel] = useState(userLevel || 'MCA Student');
+      const [concept, setConcept] = useState('');
+      const [explanation, setExplanation] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleExplain = async () => {
+        setLoading(true);
+        try {
+          const res = await apiRequest(`/workspace/documents/${doc.id}/explain/`, {
+            method: 'POST',
+            body: { concept: concept.trim() || doc.title, academic_level: academicLevel }
+          });
+          setExplanation(res.explanation);
+          if (onAwardXP) onAwardXP(20, '4-Level Concept Explained', `Explained '${res.concept}' tailored to ${academicLevel} tier.`, '⭐');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="glass-card p-6 border-gold-500/30 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="font-extrabold text-base flex items-center gap-2">
+                  <span>⭐</span> 4-Level Adaptive Explain Engine
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">Calibrates terminology, mathematical rigor, and abstractions based on target expertise.</p>
+              </div>
+
+              {/* LEVEL SWITCHER */}
+              <div className="flex gap-1.5 p-1 rounded-xl bg-obsidian-950 border border-gold-500/30">
+                {['Beginner', 'Undergraduate', 'MCA Student', 'Researcher'].map(lvl => (
+                  <button
+                    key={lvl}
+                    onClick={() => setAcademicLevel(lvl)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${academicLevel === lvl ? 'bg-gold-500 text-obsidian-950 shadow' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <input
+                type="text"
+                className="flex-1 text-xs px-4 py-2.5 rounded-xl bg-obsidian-950 border border-gold-500/30 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400"
+                placeholder="Target specific concept or leave blank to explain the entire study..."
+                value={concept}
+                onChange={(e) => setConcept(e.target.value)}
+              />
+              <button onClick={handleExplain} disabled={loading} className="btn-gold text-xs px-6">
+                {loading ? 'Explaining...' : 'Explain Concept'}
+              </button>
+            </div>
+          </div>
+
+          {explanation && (
+            <div className="glass-card p-6 prose dark:prose-invert prose-xs max-w-none text-slate-300 leading-relaxed">
+              <div dangerouslySetInnerHTML={{ __html: marked.parse(explanation) }} />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // PRESENTATION ASSISTANT TAB
+    // ==========================================
+    function PresentationTab({ doc, onAwardXP }) {
+      const [presentation, setPresentation] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        loadPresentation();
+      }, [doc]);
+
+      const loadPresentation = async () => {
+        setLoading(true);
+        try {
+          const res = await apiRequest(`/workspace/documents/${doc.id}/presentation/`, { method: 'POST' });
+          setPresentation(res);
+          if (onAwardXP) onAwardXP(35, 'Presentation Slides Generated', `Constructed 5-slide outline presentation with speaker notes for '${doc.title}'.`, '📊');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div className="glass-card p-12 text-center">
+            <div className="inline-block animate-spin text-3xl text-gold-400 mb-3">⚡</div>
+            <h3 className="font-bold text-sm">Synthesizing 5-Slide Presentation Deck...</h3>
+          </div>
+        );
+      }
+
+      if (!presentation) return null;
+
+      return (
+        <div className="space-y-6">
+          <div className="glass-card p-6 border-gold-500/30 flex justify-between items-center">
+            <div>
+              <h3 className="font-extrabold text-base">{presentation.title}</h3>
+              <p className="text-xs text-slate-400 mt-1">Structured slide deck with bullet points and speaker scripts.</p>
+            </div>
+            <button 
+              onClick={() => triggerDownload(JSON.stringify(presentation, null, 2), `${doc.title}_presentation.json`)}
+              className="btn-gold text-xs"
+            >
+              📥 Export JSON
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {presentation.slides?.map(s => (
+              <div key={s.slide_number} className="glass-card p-5 space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="px-2 py-0.5 rounded bg-gold-500/20 text-gold-400 text-[10px] font-bold">
+                      SLIDE {s.slide_number}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-sm text-white mb-2">{s.title}</h4>
+                  <ul className="space-y-1.5 text-xs text-slate-300">
+                    {s.bullets?.map((b, i) => (
+                      <li key={i} className="flex gap-2"><span>•</span><span>{b}</span></li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="p-3 rounded-lg bg-obsidian-950 border border-gold-500/20 text-[11px] text-gold-300/80 italic mt-3">
+                  🗣️ Speaker Script: {s.speaker_notes}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // VIVA & EXAM GENERATOR TAB
+    // ==========================================
+    function VivaTab({ doc, onAwardXP }) {
+      const [viva, setViva] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        loadViva();
+      }, [doc]);
+
+      const loadViva = async () => {
+        setLoading(true);
+        try {
+          const res = await apiRequest(`/workspace/documents/${doc.id}/viva/`, { method: 'POST' });
+          setViva(res);
+          if (onAwardXP) onAwardXP(35, 'University Viva Prep Generated', `Generated 2-Mark, 5-Mark & Examiner Defense questions for '${doc.title}'.`, '🎓');
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div className="glass-card p-12 text-center">
+            <div className="inline-block animate-spin text-3xl text-gold-400 mb-3">🎓</div>
+            <h3 className="font-bold text-sm">Compiling University Viva & Exam Prep Questions...</h3>
+          </div>
+        );
+      }
+
+      if (!viva) return null;
+
+      return (
+        <div className="space-y-6">
+          <div className="glass-card p-6 border-gold-500/30">
+            <h3 className="font-extrabold text-base flex items-center gap-2">
+              <span>🎓</span> Comprehensive Exam & Oral Defense Prep (2-Mark, 5-Mark & External Viva)
+            </h3>
+          </div>
+
+          {/* 2-MARK QUESTIONS */}
+          <div className="glass-card p-6 space-y-4">
+            <h4 className="font-bold text-xs text-gold-400 uppercase tracking-wider border-b border-gold-500/20 pb-2">
+              2-Mark Conceptual Definitions
+            </h4>
+            <div className="space-y-3">
+              {viva.two_mark_questions?.map((q, i) => (
+                <div key={i} className="p-4 rounded-xl bg-obsidian-900/60 border border-gold-500/20 space-y-1.5">
+                  <div className="font-bold text-xs text-white">Q{i+1}: {q.question}</div>
+                  <div className="text-xs text-slate-300 leading-relaxed font-serif">{q.answer}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 5-MARK QUESTIONS */}
+          <div className="glass-card p-6 space-y-4">
+            <h4 className="font-bold text-xs text-gold-400 uppercase tracking-wider border-b border-gold-500/20 pb-2">
+              5-Mark Architectural & Methodology Questions
+            </h4>
+            <div className="space-y-3">
+              {viva.five_mark_questions?.map((q, i) => (
+                <div key={i} className="p-4 rounded-xl bg-obsidian-900/60 border border-gold-500/20 space-y-1.5">
+                  <div className="font-bold text-xs text-white">Q{i+1}: {q.question}</div>
+                  <div className="text-xs text-slate-300 leading-relaxed font-serif whitespace-pre-line">{q.answer}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* EXTERNAL VIVA QUESTIONS */}
+          <div className="glass-card p-6 space-y-4 border-rose-500/30">
+            <h4 className="font-bold text-xs text-rose-400 uppercase tracking-wider border-b border-rose-500/20 pb-2">
+              External Examiner Tough Viva Defense
+            </h4>
+            <div className="space-y-3">
+              {viva.viva_questions?.map((q, i) => (
+                <div key={i} className="p-4 rounded-xl bg-obsidian-900/60 border border-rose-500/20 space-y-1.5">
+                  <div className="font-bold text-xs text-rose-300">Viva Challenge: {q.question}</div>
+                  <div className="text-xs text-slate-300 leading-relaxed font-serif whitespace-pre-line">{q.answer}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // AUTH MODAL
+    // ==========================================
+    function AuthModal({ onClose, onLogin, onRegister, onGuestAccess }) {
+      const [isLogin, setIsLogin] = useState(true);
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [email, setEmail] = useState('');
+      const [academicLevel, setAcademicLevel] = useState('MCA Student');
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        try {
+          if (isLogin) {
+            await onLogin(username, password);
+          } else {
+            await onRegister({ username, password, email, academic_level: academicLevel });
+          }
+        } catch(err) {
+          setError(err.message || 'Authentication failed');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <h3 className="font-extrabold text-base">{isLogin ? 'Sign In to ScholarPulse' : 'Create Student / Researcher Account'}</h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            {/* 1-CLICK INSTANT GUEST ACCESS */}
+            <button 
+              onClick={() => { onGuestAccess(); onClose(); }}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-gold-600 text-obsidian-950 font-black text-xs shadow-lg shadow-gold-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+            >
+              <span>⚡</span> 1-Click Instant Guest Researcher Access (No Login Needed)
+            </button>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="h-px bg-gold-500/20 flex-1"></div>
+              <span className="text-[10px] text-slate-500 uppercase font-bold">OR CUSTOM CREDENTIALS</span>
+              <div className="h-px bg-gold-500/20 flex-1"></div>
+            </div>
+
+            {error && <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">{error}</div>}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Username</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+
+              {!isLogin && (
+                <>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Academic Profile Level</label>
+                    <select
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                      value={academicLevel}
+                      onChange={(e) => setAcademicLevel(e.target.value)}
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Undergraduate">Undergraduate (BSc / BTech)</option>
+                      <option value="MCA Student">MCA Student / Masters Candidate</option>
+                      <option value="Researcher">PhD / Research Scholar</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Password</label>
+                <input 
+                  type="password" 
+                  required
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className="w-full btn-gold text-xs py-3 mt-2">
+                {loading ? 'Authenticating...' : isLogin ? 'Sign In →' : 'Register Account →'}
+              </button>
+            </form>
+
+            <div className="text-center text-xs text-slate-400 pt-2">
+              {isLogin ? "Don't have an account?" : "Already registered?"}{' '}
+              <button onClick={() => setIsLogin(!isLogin)} className="text-gold-400 font-bold hover:underline">
+                {isLogin ? 'Sign Up' : 'Sign In'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // UPLOAD MODAL
+    // ==========================================
+    function UploadModal({ onClose, onSuccess }) {
+      const [file, setFile] = useState(null);
+      const [title, setTitle] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+
+      const handleUpload = async (e) => {
+        e.preventDefault();
+        if (!file) return;
+        setLoading(true);
+        setError('');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        if (title.trim()) formData.append('title', title.trim());
+
+        try {
+          const res = await apiRequest('/workspace/documents/', {
+            method: 'POST',
+            body: formData
+          });
+          onSuccess(res);
+        } catch(err) {
+          setError(err.message || 'Upload failed');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <h3 className="font-extrabold text-base">Upload Document, Paper or Diagram</h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            {error && <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">{error}</div>}
+
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Select File (PDF, DOCX, PPTX, TXT, or PNG/JPG Diagram)</label>
+                <input 
+                  type="file" 
+                  required
+                  accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1"
+                  onChange={(e) => {
+                    const f = e.target.files[0];
+                    setFile(f);
+                    if (f && !title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Document Title (Optional)</label>
+                <input 
+                  type="text" 
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-obsidian-800 text-xs text-slate-300">Cancel</button>
+                <button type="submit" disabled={loading || !file} className="btn-gold text-xs px-5">
+                  {loading ? 'Parsing & Indexing Vectors...' : 'Upload & Vectorize →'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // PROFILE MODAL
+    // ==========================================
+    function ProfileModal({ onClose, user, onUpdateUser }) {
+      const [academicLevel, setAcademicLevel] = useState(user.profile?.academic_level || 'MCA Student');
+      const [avatar, setAvatar] = useState(user.profile?.avatar || 'technomancer');
+      const [loading, setLoading] = useState(false);
+
+      const handleSave = async () => {
+        setLoading(true);
+        try {
+          const res = await apiRequest('/auth/profile/', {
+            method: 'PUT',
+            body: { academic_level: academicLevel, avatar }
+          });
+          onUpdateUser({ ...user, profile: res.profile });
+          onClose();
+        } catch(e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const AVATARS = [
+        { id: 'technomancer', label: 'Technomancer', icon: '🧙‍♂️' },
+        { id: 'quantum', label: 'Quantum Physicist', icon: '⚛️' },
+        { id: 'neural', label: 'Neural Architect', icon: '🧠' },
+        { id: 'deepspace', label: 'Cosmologist', icon: '🚀' },
+        { id: 'genomic', label: 'Bioinformatician', icon: '🧬' },
+        { id: 'summa', label: 'Summa Scholar', icon: '🎓' },
+        { id: 'terminal', label: 'Kernel Hacker', icon: '💻' },
+        { id: 'astro', label: 'Astrophysicist', icon: '🪐' }
+      ];
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <h3 className="font-extrabold text-base">Researcher Profile Settings</h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Select Avatar</label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {AVATARS.map(a => (
+                    <div 
+                      key={a.id} 
+                      onClick={() => setAvatar(a.id)}
+                      className={`p-2.5 rounded-xl border text-center cursor-pointer transition-all ${avatar === a.id ? 'bg-gold-500/20 border-gold-400 text-gold-300' : 'bg-obsidian-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                    >
+                      <div className="text-xl mb-1">{a.icon}</div>
+                      <div className="text-[9px] truncate">{a.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Academic Profile Tier</label>
+                <select
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1"
+                  value={academicLevel}
+                  onChange={(e) => setAcademicLevel(e.target.value)}
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Undergraduate">Undergraduate (BSc / BTech)</option>
+                  <option value="MCA Student">MCA Student / Masters Candidate</option>
+                  <option value="Researcher">PhD / Research Scholar</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={onClose} className="px-4 py-2 rounded-xl bg-obsidian-800 text-xs text-slate-300">Cancel</button>
+                <button onClick={handleSave} disabled={loading} className="btn-gold text-xs px-5">
+                  {loading ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // GUIDE & MODULES MODAL
+    // ==========================================
+    function GuideModal({ onClose }) {
+      const MODULES = [
+        { id: 1, title: 'User Registration & Profiles', desc: 'Secure JWT authentication with customizable academic profiles.' },
+        { id: 2, title: 'Multimodal Research Workspace', desc: 'Centralized document hub with search and metadata management.' },
+        { id: 3, title: 'Document & Diagram Parser (PDF/DOCX/PPTX/Images)', desc: 'Multi-format file extraction and Gemini Vision OCR.' },
+        { id: 4, title: 'ChromaDB Vector Store', desc: 'Semantic embedding indexing with TF-IDF fallback mechanisms.' },
+        { id: 5, title: 'RAG Assistant & Contextual Summarizer', desc: 'Grounded question answering with Gemini model gateways.' },
+        { id: 6, title: 'AI Explain Mode (4 Levels)', desc: 'Adaptive concept explanation across 4 academic tiers.' },
+        { id: 7, title: 'Presentation Assistant', desc: 'Automated 5-slide presentation generator with speaker scripts.' },
+        { id: 8, title: 'Viva Defense Generator', desc: '2-Mark, 5-Mark, and External Viva Questions with model answers.' },
+        { id: 9, title: 'Citation & Reference Hub (Mendeley/Zotero)', desc: 'APA, IEEE, Harvard, MLA, BibTeX and RIS export formats.' },
+        { id: 10, title: 'Cross-Paper Synthesis Matrix (Elicit/SciSpace)', desc: 'Multi-document comparative analysis tables with CSV exports.' },
+        { id: 11, title: 'ScholarCast Audio Studio (NotebookLM)', desc: 'Dual-voice conversational AI podcast with Web Speech synthesis.' },
+        { id: 12, title: 'Reviewer #2 Critical Rigor Auditor', desc: 'Ruthless peer review simulator with Rigor Score (0-100).' },
+        { id: 13, title: 'Formula & Algorithm to Code Synthesizer', desc: 'Converts LaTeX equations to runnable Python & PyTorch code.' },
+        { id: 14, title: 'DOI & ArXiv 1-Click Paper Ingestor', desc: 'Instant paper ingestion via CrossRef and arXiv open APIs.' }
+      ];
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-3xl w-full max-h-[85vh] flex flex-col p-6 border-gold-400 bg-obsidian-950 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
+              <div>
+                <h3 className="font-extrabold text-lg">ScholarPulse AI Architecture & Module Guide</h3>
+                <p className="text-xs text-gold-400 font-bold">14 Fully Integrated Multimodal Research Modules</p>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-2">
+              {MODULES.map(m => (
+                <div key={m.id} className="p-3 rounded-xl bg-obsidian-900 border border-gold-500/20 flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-gold-500/20 border border-gold-500/40 text-gold-400 font-black text-xs flex items-center justify-center flex-shrink-0">
+                    {m.id}
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-xs text-white">{m.title}</h4>
+                    <p className="text-[11px] text-slate-400">{m.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button onClick={onClose} className="btn-gold text-xs px-6">Close Guide</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Render React App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+  {% endverbatim %}
+</body>
+</html>
