@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ document.title }} | AI Study Assistant{% endblock %}
+
+{% block extra_head %}
+<!-- Markdown Parser CDN for premium formatting -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Study Workspace Header with Tab Controls -->
+<header class="study-header">
+    <div class="study-title-wrapper">
+        <div>
+            <h1 id="workspace-title">{{ document.title }}</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                📅 Analyzed on {{ document.uploaded_at|date:"M d, Y H:i" }} | 
+                📁 {% if document.file %}PDF Document{% else %}Pasted Text{% endif %}
+            </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'document_quiz' document.id %}" class="btn btn-primary btn-sm">
+                🧠 Take Quiz
+            </a>
+            <a href="{% url 'document_flashcards' document.id %}" class="btn btn-cyan btn-sm">
+                🎴 Flashcards
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <ul class="tab-nav">
+            <li><button class="tab-btn active" onclick="switchTab('summary')">📝 AI Summary</button></li>
+            <li><button class="tab-btn" onclick="switchTab('chat')">💬 Chat with Notes</button></li>
+        </ul>
+    </div>
+</header>
+
+<main class="study-body">
+
+    <!-- Tab A: AI Generated Summary -->
+    <div id="tab-summary" class="tab-content">
+        <div class="glass-panel summary-container">
+            <h2 style="margin-top: 0; color: var(--secondary);">Document Study Summary</h2>
+            <div id="summary-parsed-content" style="display: none;">{{ document.summary|safe }}</div>
+            <div id="summary-render-target">
+                <!-- Marked.js will render the beautiful markdown summary here -->
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    Parsing and rendering study notes summary...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab B: Interactive Chat Hub -->
+    <div id="tab-chat" class="tab-content" style="display: none;">
+        <div class="glass-panel chat-container">
+            <div class="chat-messages" id="chat-scroller">
+                
+                <!-- Initial Welcome Message from Assistant -->
+                <div class="chat-bubble chat-bubble-ai">
+                    <h5>AI Study Tutor</h5>
+                    <p>
+                        Hello! I have completely indexed the contents of <strong>"{{ document.title }}"</strong>. 
+                        Ask me any questions, request code expansions, or ask me to explain complex sections. How can I help you study today?
+                    </p>
+                </div>
+
+                <!-- Load Existing Chat History from DB -->
+                {% if chat_history %}
+                    {% for chat in chat_history %}
+                        <div class="chat-bubble chat-bubble-user">
+                            <h5>You</h5>
+                            <p>{{ chat.question }}</p>
+                        </div>
+                        <div class="chat-bubble chat-bubble-ai">
+                            <h5>AI Study Tutor</h5>
+                            <div class="ai-history-response" style="display: none;">{{ chat.answer }}</div>
+                            <div class="ai-history-target"></div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+            </div>
+
+            <!-- Interactive Chat Input Area -->
+            <div class="chat-input-area">
+                <form id="chat-form" class="chat-form" onsubmit="handleChatSubmit(event)">
+                    {% csrf_token %}
+                    <input type="text" id="chat-input" class="form-input chat-input" placeholder="Ask a question about this document..." autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary" id="chat-send-btn">
+                        Ask AI ⚡
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Markdown Render of Summary on Load
+    document.addEventListener("DOMContentLoaded", function() {
+        // Parse the main summary markdown
+        const rawSummary = document.getElementById('summary-parsed-content').innerText;
+        if (rawSummary.trim()) {
+            document.getElementById('summary-render-target').innerHTML = marked.parse(rawSummary);
+        } else {
+            document.getElementById('summary-render-target').innerHTML = "<p>No summary could be generated.</p>";
+        }
+
+        // Parse any existing AI history responses markdown
+        const historyResponses = document.querySelectorAll('.ai-history-response');
+        const historyTargets = document.querySelectorAll('.ai-history-target');
+        
+        historyResponses.forEach((resp, idx) => {
+            historyTargets[idx].innerHTML = marked.parse(resp.innerText);
+        });
+
+        scrollChatToBottom();
+    });
+
+    // Tab Swapping Controller
+    function switchTab(tabId) {
+        // Update navigation buttons
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        // Update content panes
+        const panes = document.querySelectorAll('.tab-content');
+        panes.forEach(pane => pane.style.display = 'none');
+
+        if (tabId === 'summary') {
+            buttons[0].classList.add('active');
+            document.getElementById('tab-summary').style.display = 'block';
+        } else if (tabId === 'chat') {
+            buttons[1].classList.add('active');
+            document.getElementById('tab-chat').style.display = 'block';
+            scrollChatToBottom();
+        }
+    }
+
+    // Scroll chat window to most recent bubble
+    function scrollChatToBottom() {
+        const scroller = document.getElementById('chat-scroller');
+        scroller.scrollTop = scroller.scrollHeight;
+    }
+
+    // Ajax Chat Submission Handlers
+    function handleChatSubmit(event) {
+        event.preventDefault();
+        
+        const inputField = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('chat-send-btn');
+        const question = inputField.value.trim();
+        
+        if (!question) return;
+
+        // Clear input field and disable button during request
+        inputField.value = '';
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+        sendBtn.innerText = "Thinking...";
+
+        // Append User bubble to chat scroller in real time
+        const scroller = document.getElementById('chat-scroller');
+        const userBubble = document.createElement('div');
+        userBubble.className = 'chat-bubble chat-bubble-user';
+        userBubble.innerHTML = `<h5>You</h5><p>${escapeHTML(question)}</p>`;
+        scroller.appendChild(userBubble);
+        scrollChatToBottom();
+
+        // Append temporary typing indicator
+        const typingBubble = document.createElement('div');
+        typingBubble.className = 'chat-bubble chat-bubble-ai';
+        typingBubble.id = 'temp-typing-bubble';
+        typingBubble.innerHTML = `<h5>AI Study Tutor</h5><p style="font-style: italic; color: var(--text-muted);">AI is searching document and drafting answer...</p>`;
+        scroller.appendChild(typingBubble);
+        scrollChatToBottom();
+
+        // Perform standard Django CSRF protected Ajax Fetch
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch("{% url 'document_chat' document.id %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ 'question': question })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Remove typing bubble
+            const typing = document.getElementById('temp-typing-bubble');
+            if (typing) typing.remove();
+
+            // Append AI bubble with markdown parsing
+            const aiBubble = document.createElement('div');
+            aiBubble.className = 'chat-bubble chat-bubble-ai';
+            
+            // marked.parse handles rich code block / list generation
+            const parsedAnswer = marked.parse(data.answer);
+            
+            aiBubble.innerHTML = `<h5>AI Study Tutor</h5><div>${parsedAnswer}</div>`;
+            scroller.appendChild(aiBubble);
+            
+            // Re-enable chat form inputs
+            inputField.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.innerText = "Ask AI ⚡";
+            inputField.focus();
+            
+            scrollChatToBottom();
+        })
+        .catch(error => {
+            console.error("Chat Error:", error);
+            // Remove typing bubble
+            const typing = document.getElementById('temp-typing-bubble');
+            if (typing) typing.remove();
+
+            const errorBubble = document.createElement('div');
+            errorBubble.className = 'chat-bubble chat-bubble-ai';
+            errorBubble.innerHTML = `<h5>AI Study Tutor</h5><p style="color: var(--error);">Error connecting to study engine. Please check your .env configuration and server console.</p>`;
+            scroller.appendChild(errorBubble);
+            
+            inputField.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.innerText = "Ask AI ⚡";
+            scrollChatToBottom();
+        });
+    }
+
+    // Helper to safely escape HTML strings
+    function escapeHTML(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+{% endblock %}
