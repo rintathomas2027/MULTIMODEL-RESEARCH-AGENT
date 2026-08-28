@@ -1,0 +1,783 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RoastMyStack.ai - AI Architecture Auditor{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --terminal-green: #39ff14;
+        --terminal-bg: #050811;
+        --glow-color: rgba(57, 255, 20, 0.2);
+        --glass-bg: rgba(13, 20, 38, 0.45);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #8b5cf6;
+        --neon-pink: #ec4899;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background: radial-gradient(circle at 50% 0%, #151a30 0%, #070913 70%);
+        color: #f3f4f6;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .roast-container {
+        max-width: 1100px;
+        margin: 5rem auto 8rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .hero-header {
+        text-align: center;
+        margin-bottom: 4rem;
+        position: relative;
+    }
+
+    .hero-header h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #ffffff 30%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .hero-header p {
+        font-size: 1.2rem;
+        color: #9ca3af;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 2.5rem;
+        align-items: start;
+    }
+
+    @media (max-width: 900px) {
+        .grid-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Glassmorphic Form Card */
+    .glass-form-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--neon-purple), var(--neon-pink));
+    }
+
+    .form-section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .input-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+        display: block;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .input-field {
+        width: 100%;
+        background: rgba(8, 12, 24, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0.85rem 1.2rem;
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: var(--neon-purple);
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+        background: rgba(8, 12, 24, 0.85);
+    }
+
+    .row-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+        border: none;
+        border-radius: 14px;
+        padding: 1.1rem;
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px rgba(124, 58, 237, 0.45);
+        background: linear-gradient(135deg, #9333ea, #6d28d9);
+    }
+
+    /* Retro CRT Terminal Card */
+    .terminal-card {
+        background: var(--terminal-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        height: 600px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--glow-color);
+    }
+
+    /* Screen Bezel shadow & reflections */
+    .terminal-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 80%);
+        pointer-events: none;
+    }
+
+    .terminal-header {
+        background: #0d1220;
+        padding: 0.85rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .terminal-dots {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.green { background: #10b981; }
+
+    .terminal-title {
+        font-family: 'Fira Code', monospace;
+        font-size: 0.8rem;
+        color: #4b5563;
+        letter-spacing: 0.05em;
+    }
+
+    .terminal-body {
+        flex: 1;
+        padding: 2rem;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--terminal-green);
+        overflow-y: auto;
+        position: relative;
+        text-shadow: 0 0 4px var(--glow-color);
+    }
+
+    /* Scanline Screen Effect */
+    .scanlines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            rgba(18, 16, 16, 0) 50%, 
+            rgba(0, 0, 0, 0.25) 50%
+        ), linear-gradient(
+            90deg, 
+            rgba(255, 0, 0, 0.06), 
+            rgba(0, 255, 0, 0.02), 
+            rgba(0, 0, 255, 0.06)
+        );
+        background-size: 100% 4px, 3px 100%;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .terminal-text {
+        white-space: pre-wrap;
+    }
+
+    .cursor {
+        display: inline-block;
+        width: 8px;
+        height: 15px;
+        background: var(--terminal-green);
+        animation: blink 0.8s infinite;
+        vertical-align: middle;
+        margin-left: 4px;
+        box-shadow: 0 0 4px var(--terminal-green);
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+    }
+
+    /* Dashboard Widgets Section (unblurs on success) */
+    .dashboard-section {
+        margin-top: 4rem;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        display: none;
+    }
+
+    .dashboard-section.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+
+    .widget-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2rem;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+    }
+
+    .badge-card {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .badge-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 1.5rem 0 0.5rem 0;
+        letter-spacing: -0.02em;
+    }
+
+    /* Speedometer SVG */
+    .gauge-wrapper {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        margin: 1rem 0;
+    }
+
+    .gauge-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .gauge-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.05);
+        stroke-width: 14;
+    }
+
+    .gauge-progress {
+        fill: none;
+        stroke: url(#gradient-pink-purple);
+        stroke-width: 14;
+        stroke-linecap: round;
+        stroke-dasharray: 440;
+        stroke-dashoffset: 440;
+        transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .gauge-score {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    /* Progress details list */
+    .stats-list {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .stat-label {
+        color: #9ca3af;
+    }
+
+    .stat-value {
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .rdd-badge {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 0.1rem 0.6rem;
+        border-radius: 6px;
+        color: #ef4444;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    /* Tip panel styling */
+    .tips-panel {
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .tips-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tip-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: #d1d5db;
+    }
+
+    .tip-bullet {
+        color: #ec4899;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    /* Share Section */
+    .share-container {
+        text-align: center;
+        margin-top: 3.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .share-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #ffffff;
+        color: #000000;
+        border: none;
+        border-radius: 12px;
+        padding: 0.9rem 2.2rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+    }
+
+    .share-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(255, 255, 255, 0.2);
+        background: #f3f4f6;
+    }
+
+    .glow-spinner {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="roast-container">
+    <div class="hero-header">
+        <h1>RoastMyStack.ai 🌶️</h1>
+        <p>Get your architecture brutally audited by a highly sarcastic AI software engineer. No punches pulled, zero sugar-coating.</p>
+    </div>
+
+    <div class="grid-layout">
+        <!-- Interactive Glass Form -->
+        <div class="glass-form-card">
+            <div class="form-section-title">
+                <span>⚡</span> Input Your Tech Specs
+            </div>
+            <form id="roast-form">
+                <div class="input-group">
+                    <label for="frontend">Frontend Framework</label>
+                    <input type="text" id="frontend" class="input-field" placeholder="e.g., Next.js, React, HTMX, Vue, pure HTML" required>
+                </div>
+                <div class="input-group">
+                    <label for="backend">Backend Service</label>
+                    <input type="text" id="backend" class="input-field" placeholder="e.g., Django, Node.js, FastAPI, Spring Boot, Lambda" required>
+                </div>
+                <div class="input-group">
+                    <label for="database">Database</label>
+                    <input type="text" id="database" class="input-field" placeholder="e.g., MySQL, PostgreSQL, MongoDB, Redis, SQLite" required>
+                </div>
+                <div class="input-group">
+                    <label for="hosting">Hosting / Infrastructure</label>
+                    <input type="text" id="hosting" class="input-field" placeholder="e.g., Vercel, AWS (EC2/EKS), Heroku, DigitalOcean, VPS" required>
+                </div>
+
+                <div class="row-inputs">
+                    <div class="input-group">
+                        <label for="bill">Monthly Cloud Bill ($)</label>
+                        <input type="number" id="bill" class="input-field" placeholder="0" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="team_size">Team Size (Devs)</label>
+                        <input type="number" id="team_size" class="input-field" placeholder="1" min="1" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <span>Initiate Brutal Audit</span> 🌶️
+                </button>
+            </form>
+        </div>
+
+        <!-- Glowing CRT Terminal Console -->
+        <div class="terminal-card">
+            <div class="scanlines"></div>
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <div class="terminal-title">AUDIT_CONSOLE_v1.0.8</div>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <div class="terminal-text" id="terminal-text">> Ready for incoming stack submission...
+> Awaiting payload.
+> Do your worst.</div><span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Widget Section (revealed on success) -->
+    <div class="dashboard-section" id="dashboard-section">
+        <div class="dashboard-grid">
+            <!-- Archetype Badge Card -->
+            <div class="widget-card badge-card">
+                <span style="font-size: 2.5rem;">🏆</span>
+                <div class="badge-title" id="badge-title">Vercel Paypig</div>
+                <p style="color: #cbd5e1; font-size: 0.95rem; margin-top: 0.5rem;" id="badge-desc">Your official developer archetype moniker.</p>
+            </div>
+
+            <!-- Over-engineering Gauge -->
+            <div class="widget-card">
+                <h3 style="font-size: 1.1rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.5rem;">Over-engineering Rating</h3>
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg">
+                        <defs>
+                            <linearGradient id="gradient-pink-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ec4899" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="gauge-bg" cx="90" cy="90" r="70" />
+                        <circle class="gauge-progress" id="gauge-progress" cx="90" cy="90" r="70" />
+                    </svg>
+                    <div class="gauge-score" id="gauge-score">0%</div>
+                </div>
+                <p style="color: #9ca3af; font-size: 0.85rem; margin-top: 0.5rem;">Based on system scale vs. target metrics.</p>
+            </div>
+
+            <!-- Performance metrics -->
+            <div class="widget-card tips-panel">
+                <div class="tips-title">
+                    <span>⚙️</span> Architect Audit Metrics
+                </div>
+                <div class="stats-list">
+                    <div class="stat-row">
+                        <span class="stat-label">Resume-Driven Dev (RDD) Level:</span>
+                        <span class="rdd-badge" id="rdd-level">CRITICAL</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Monthly Cloud Bleed Score:</span>
+                        <span class="stat-value" id="wallet-score">0%</span>
+                    </div>
+                    <div class="stat-row" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                        <span class="stat-label" style="font-size: 0.8rem; text-transform: uppercase;">Estimated Cost Recovery:</span>
+                        <span class="stat-value" style="color: var(--terminal-green); font-weight: 700;" id="saving-estimate">$0 / year</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Optimization Actionable Tips -->
+        <div class="widget-card tips-panel" style="margin-top: 2rem; width: 100%; box-sizing: border-box;">
+            <div class="tips-title" style="color: var(--terminal-green);">
+                <span>🛠️</span> Cost Optimization & Simplification Steps
+            </div>
+            <div id="tips-container" style="width: 100%;">
+                <!-- Dynamic Tips -->
+            </div>
+        </div>
+
+        <!-- Organic Viral Sharing -->
+        <div class="share-container">
+            <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">Proud of your terrible architecture?</h3>
+            <a href="#" target="_blank" class="share-btn" id="share-btn">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Post Your Audit on X (Twitter)
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('roast-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submit-btn');
+        const termBody = document.getElementById('terminal-body');
+        const termText = document.getElementById('terminal-text');
+        
+        // Disable submit button and add loading spinner
+        const originalBtnHTML = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="glow-spinner"></span> Calibrating roaster...';
+        
+        // Hide previous dashboard results if active
+        document.getElementById('dashboard-section').classList.remove('active');
+        
+        // Terminal Boot Sequence Simulator
+        termText.innerHTML = `> Initializing audit sequence...
+> Establishing secure uplink...
+> Packaging payload metadata...`;
+        termBody.scrollTop = termBody.scrollHeight;
+        
+        const payload = {
+            frontend: document.getElementById('frontend').value,
+            backend: document.getElementById('backend').value,
+            database: document.getElementById('database').value,
+            hosting: document.getElementById('hosting').value,
+            bill: document.getElementById('bill').value,
+            team_size: document.getElementById('team_size').value
+        };
+
+        const bootMessages = [
+            `> SCANNING frontend modules: [${payload.frontend}]`,
+            `> EVALUATING backend services: [${payload.backend}]`,
+            `> QUERYING database instances: [${payload.database}]`,
+            `> PACKET-TRACE hosting clusters: [${payload.hosting}]`,
+            `> WARNING: Cloud bill detected: $${payload.bill}/mo`,
+            `> CALCULATING developer overhead: ${payload.team_size} active user(s)`,
+            `> LAUNCHING opinionated senior architect subroutines...`
+        ];
+
+        // Type boot messages with small delays
+        for(let i=0; i<bootMessages.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 400));
+            termText.innerHTML += '\n' + bootMessages[i];
+            termBody.scrollTop = termBody.scrollHeight;
+        }
+
+        try {
+            const response = await fetch('{% url "roast_my_stack" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                termText.innerHTML += '\n> ANALYSIS COMPLETE. INITIATING HIGH-SARCASTIC READOUT:\n\n';
+                termBody.scrollTop = termBody.scrollHeight;
+                
+                // Typewriter effect for the roast text
+                let index = 0;
+                const roastContent = data.roast;
+                
+                function typeWriter() {
+                    if (index < roastContent.length) {
+                        termText.innerHTML += roastContent.charAt(index);
+                        index++;
+                        termBody.scrollTop = termBody.scrollHeight;
+                        // Fast typing speed
+                        setTimeout(typeWriter, 5);
+                    } else {
+                        // Boot up dashboard section once typing finishes
+                        revealDashboard(data, payload);
+                    }
+                }
+                
+                typeWriter();
+                
+            } else {
+                termText.innerHTML += `\n> ERROR: AUDIT TERMINATED. ${data.error || 'Server error occurred.'}`;
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+        } catch (err) {
+            termText.innerHTML += `\n> ERROR: CONNECTION FAILURE. Please check your local server console.`;
+            termBody.scrollTop = termBody.scrollHeight;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHTML;
+        }
+    });
+
+    function revealDashboard(data, payload) {
+        const dashboard = document.getElementById('dashboard-section');
+        dashboard.classList.add('active');
+        
+        // Update values
+        document.getElementById('badge-title').innerText = data.tech_badge;
+        
+        // Circular Speedometer Gauge logic
+        const score = Math.min(Math.max(parseInt(data.overengineering_score) || 0, 0), 100);
+        document.getElementById('gauge-score').innerText = `${score}%`;
+        const radius = 70;
+        const circumference = 2 * Math.PI * radius; // ~439.8
+        const offset = circumference - (score / 100) * circumference;
+        document.getElementById('gauge-progress').style.strokeDashoffset = offset;
+        
+        // Update stats
+        document.getElementById('rdd-level').innerText = (data.rdd_level || 'HIGH').toUpperCase();
+        document.getElementById('wallet-score').innerText = `${data.wallet_bleeding_score}%`;
+        
+        // Estimated annual savings calculation
+        const bill = parseFloat(payload.bill) || 0;
+        const potentialSavings = Math.round(bill * 12 * ((data.wallet_bleeding_score || 50) / 100));
+        document.getElementById('saving-estimate').innerText = `$${potentialSavings.toLocaleString()} / year`;
+        
+        // Color coding for RDD Level
+        const rddBadge = document.getElementById('rdd-level');
+        if (data.rdd_level && data.rdd_level.toLowerCase() === 'critical') {
+            rddBadge.style.color = '#ef4444';
+            rddBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+            rddBadge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        } else if (data.rdd_level && data.rdd_level.toLowerCase() === 'high') {
+            rddBadge.style.color = '#f97316';
+            rddBadge.style.background = 'rgba(249, 115, 22, 0.15)';
+            rddBadge.style.borderColor = 'rgba(249, 115, 22, 0.3)';
+        } else {
+            rddBadge.style.color = '#10b981';
+            rddBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+            rddBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        }
+        
+        // Render Tips list
+        const tipsContainer = document.getElementById('tips-container');
+        tipsContainer.innerHTML = '';
+        if (data.tips && Array.isArray(data.tips)) {
+            data.tips.forEach(tip => {
+                const tipEl = document.createElement('div');
+                tipEl.className = 'tip-item';
+                tipEl.innerHTML = `<span class="tip-bullet">▶</span> <div>${tip}</div>`;
+                tipsContainer.appendChild(tipEl);
+            });
+        }
+        
+        // Setup custom Twitter share button link
+        const shareBtn = document.getElementById('share-btn');
+        const tweetText = encodeURIComponent(
+            `Just got roasted by RoastMyStack.ai! 🌶️\n\n` +
+            `My Architect Archetype: "${data.tech_badge}"\n` +
+            `Over-engineering Rating: ${score}%\n` +
+            `Estimated cost recovery: $${potentialSavings.toLocaleString()}/yr\n\n` +
+            `Find out how terrible your stack is here:`
+        );
+        const tweetUrl = encodeURIComponent(window.location.origin + window.location.pathname);
+        shareBtn.href = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
+        
+        // Smooth scroll to dashboard
+        dashboard.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+{% endblock %}
