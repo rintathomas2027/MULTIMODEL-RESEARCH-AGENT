@@ -1,0 +1,1896 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Research Management & Publication Portal | AI Study Assistant{% endblock %}
+
+{% block extra_head %}
+<!-- Markdown Parser CDN for premium formatting -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    /* Scope styling overrides for portal page */
+    .portal-main-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .role-section-indicator {
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .profile-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        margin: 0 auto 1rem auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 20px var(--primary-glow);
+    }
+    
+    .panel-header-icon {
+        margin-right: 8px;
+        display: inline-block;
+    }
+
+    .doc-preview-area {
+        height: 200px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        white-space: pre-wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+    
+    <!-- Sidebar Navigation Menu (Module 2, 13, 14, 15) -->
+    <aside class="portal-sidebar glass-panel">
+        <div style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div class="profile-avatar-large" id="sidebar-avatar">U</div>
+            <h4 style="margin-bottom: 0.25rem;" id="sidebar-username">{{ user.username|capfirst }}</h4>
+            <span class="role-badge" id="role-display-badge">Student / Researcher</span>
+        </div>
+        
+        <nav class="portal-sidebar-nav">
+            <!-- Researcher Section -->
+            <div class="sidebar-group" id="nav-group-researcher">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin: 0.5rem 0.75rem 0.25rem 0.75rem; font-weight: 700;">Researcher Tools</p>
+                <button class="portal-sidebar-btn active" id="btn-profile" onclick="switchTab('profile')">👤 Academic Profile</button>
+                <button class="portal-sidebar-btn" id="btn-workspace" onclick="switchTab('workspace')">📁 Workspace & Parser</button>
+                <button class="portal-sidebar-btn" id="btn-kg" onclick="switchTab('kg')">🕸️ Knowledge Graph</button>
+                <button class="portal-sidebar-btn" id="btn-chat" onclick="switchTab('chat')">💬 AI Assistant (RAG)</button>
+                <button class="portal-sidebar-btn" id="btn-paper-tools" onclick="switchTab('paper-tools')">⚡ AI Writing Suite</button>
+                <button class="portal-sidebar-btn" id="btn-community" onclick="switchTab('community')">👥 Community Forum</button>
+                <button class="portal-sidebar-btn" id="btn-collab" onclick="switchTab('collab')">🚪 Collaboration Room</button>
+                <button class="portal-sidebar-btn" id="btn-progress" onclick="switchTab('progress')">📊 Tracking Desk</button>
+            </div>
+            
+            <!-- Guide Section -->
+            <div class="sidebar-group" id="nav-group-guide" style="display: none;">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin: 0.5rem 0.75rem 0.25rem 0.75rem; font-weight: 700;">Guide Dashboard</p>
+                <button class="portal-sidebar-btn" id="btn-reviews" onclick="switchTab('reviews')">✍️ Review & Annotation</button>
+                <button class="portal-sidebar-btn" id="btn-guide-collab" onclick="switchTab('collab')">🚪 Assigned Rooms</button>
+                <button class="portal-sidebar-btn" id="btn-guide-progress" onclick="switchTab('progress')">📊 Student Analytics</button>
+            </div>
+
+            <!-- Generic Role Desk Tab Button -->
+            <div class="sidebar-group">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin: 0.5rem 0.75rem 0.25rem 0.75rem; font-weight: 700;">Role Desk</p>
+                <button class="portal-sidebar-btn" id="btn-role-desks" onclick="switchTab('role-desks')">🏢 Role Action Desk</button>
+            </div>
+        </nav>
+    </aside>
+    
+    <!-- Main Workspace Column -->
+    <main class="portal-main-panel">
+        
+        <!-- Top Role Switcher Header (Main Project Roles Requirement) -->
+        <div class="portal-role-banner glass-panel">
+            <div>
+                <span class="role-section-indicator">MAIN PROJECT MODULE</span>
+                <h2 style="margin: 0; font-size: 1.5rem; background: linear-gradient(to right, #ffffff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    AI Research Management & Publication Portal
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                    Simulate administrative and academic roles dynamically to inspect cross-platform controls.
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="role-selector" style="font-size: 0.9rem; font-weight: 600; color: #ffffff;">Current Role:</label>
+                <select id="role-selector" class="portal-role-select" onchange="changeAcademicRole(this.value)">
+                    <option value="student">Student / Researcher</option>
+                    <option value="guide">Guide / Supervisor</option>
+                    <option value="reviewer">Peer Reviewer</option>
+                    <option value="editor">Journal Editor</option>
+                    <option value="panel_member">Viva Panel Member</option>
+                    <option value="coordinator">Journal Coordinator</option>
+                    <option value="dept_head">Department Head</option>
+                    <option value="external">External Researcher</option>
+                    <option value="admin">Institutional Administrator</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- TAB 1: USER AUTHENTICATION & PROFILE MANAGEMENT (Module 1) -->
+        <section id="tab-profile" class="portal-tab-content glass-panel" style="padding: 2rem;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">👤</span>Academic Profile & Matching</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Manage your JWT credentials, academic affiliations, research keywords, and matching recommendations.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; flex-wrap: wrap;">
+                <!-- Profile details form -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; font-size: 1.1rem; color: #ffffff;">Affiliation & Specialization</h4>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Institution Name</label>
+                            <input type="text" id="prof-institution" class="form-input" value="Indian Institute of Technology, Madras" placeholder="Enter institution">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Specialization / Department</label>
+                            <input type="text" id="prof-spec" class="form-input" value="Computer Science & Data Engineering" placeholder="Enter specialization">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Research Interests (Press Enter to Add)</label>
+                            <input type="text" id="interest-input" class="form-input" placeholder="e.g. Deep Learning, Medical Imaging" onkeydown="handleTagInput(event, 'interests')">
+                            <div class="tag-container" id="interests-tags-container">
+                                <!-- Dynamic tags -->
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Skills (Press Enter to Add)</label>
+                            <input type="text" id="skill-input" class="form-input" placeholder="e.g. PyTorch, NLP, Graph Databases" onkeydown="handleTagInput(event, 'skills')">
+                            <div class="tag-container" id="skills-tags-container">
+                                <!-- Dynamic tags -->
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveProfile()" style="width: fit-content; padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+                            Save Profile Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Collaborator recommendations (Module 1 profile matching) -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; font-size: 1.1rem; color: #ffffff;">AI-Suggested Collaborators</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Based on semantic similarities in your research profile and skills tag vectors.</p>
+                    <div id="collaborator-matches-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <!-- Matches loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: RESEARCH WORKSPACE & PARSER (Module 2, 3) -->
+        <section id="tab-workspace" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">📁</span>Research Workspace</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Manage papers, datasets, presentations and clean extracted content ready for Knowledge Graph processing.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Workspace file listing and upload -->
+                <div>
+                    <div id="portal-upload-zone" class="file-drop-zone" style="padding: 1.5rem; text-align: center; border-style: dashed; cursor: pointer; margin-bottom: 1rem;" onclick="triggerWorkspaceUpload()">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 0.5rem auto; color: var(--secondary);">
+                            <path d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: white;">Upload Paper / Dataset</span>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Drag PDF, CSV, IPYNB, MD</p>
+                        <input type="file" id="portal-file-input" style="display: none;" onchange="handlePortalUpload(event)">
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="font-size: 1rem;">My Files (Database)</h4>
+                        <input type="text" id="workspace-search" class="form-input" placeholder="Search files..." style="width: 150px; padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 6px;" oninput="searchWorkspace(this.value)">
+                    </div>
+
+                    <div id="workspace-file-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 350px; overflow-y: auto; padding-right: 4px;">
+                        <!-- Files populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Document processing engine preview (Module 3) -->
+                <div>
+                    <div id="workspace-detail-panel" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 id="workspace-doc-title" style="color: #ffffff; font-size: 1.25rem;">Select a file</h3>
+                                <span class="badge-pill badge-approved" id="workspace-doc-meta" style="margin-top: 4px; display: inline-block;">PDF Document</span>
+                            </div>
+                            <button class="btn btn-danger btn-sm" id="btn-workspace-delete" onclick="deleteWorkspaceDoc()" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Delete</button>
+                        </div>
+
+                        <!-- Processing engine highlights (Module 3) -->
+                        <div class="glass-panel" style="padding: 1rem; margin-bottom: 1rem; border-color: rgba(6, 182, 212, 0.2);">
+                            <h4 style="font-size: 0.9rem; color: var(--secondary); margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                                <span>⚙️ Document Processing Engine Status</span>
+                                <span id="parser-status" style="color: var(--success); font-weight: bold;">[COMPLETED]</span>
+                            </h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; font-size: 0.8rem;">
+                                <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
+                                    <div style="color: var(--text-muted);">Formatting Cleaned</div>
+                                    <strong style="color: white;" id="parser-cleaned-pct">99.8%</strong>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
+                                    <div style="color: var(--text-muted);">Tokens Counted</div>
+                                    <strong style="color: white;" id="parser-tokens">14,248</strong>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.15); padding: 8px; border-radius: 6px;">
+                                    <div style="color: var(--text-muted);">Sections Extracted</div>
+                                    <strong style="color: white;" id="parser-sections">5 Sections</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Extracted sections layout -->
+                        <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: #ffffff;">Extracted Sections</h4>
+                        <div id="workspace-sections-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                            <!-- Extracted sections will build here -->
+                        </div>
+
+                        <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: #ffffff;">Raw Text Preview</h4>
+                        <div id="workspace-doc-preview" class="doc-preview-area">
+                            Select a document from the left list to parse and preview its structure.
+                        </div>
+                    </div>
+
+                    <div id="workspace-empty-panel" class="empty-state glass-panel">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h4>No Document Selected</h4>
+                        <p>Click on any document in the list, or upload a new file, to trigger the document parser engine and view the workspace details.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: KNOWLEDGE GRAPH VISUALIZATION (Module 4, 5) -->
+        <section id="tab-kg" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">🕸️</span>Knowledge Graph Construction & Visualization</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    Explore extracted entities and their relationships. Clicking nodes expands related concepts and identifies connections.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Graph Visualizer Canvas -->
+                <div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 0.75rem;">
+                        <input type="text" id="kg-search" class="form-input" placeholder="Search entities in graph..." style="width: 250px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="filterGraph(this.value)">
+                        <button class="btn btn-secondary btn-sm" onclick="resetGraphVisuals()">Reset Zoom</button>
+                    </div>
+                    <div class="kg-canvas" id="kg-canvas-container">
+                        <!-- SVG interactive canvas graph -->
+                        <svg id="kg-svg" width="100%" height="400" viewBox="0 0 600 400" style="display: block;"></svg>
+                    </div>
+                </div>
+
+                <!-- Entity lists and relationships info panel -->
+                <div>
+                    <div class="glass-panel" style="padding: 1.25rem; height: 100%; max-height: 450px; overflow-y: auto; background: rgba(0,0,0,0.25);">
+                        <h4 id="kg-inspect-title" style="color: var(--accent); font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+                            Entity Inspector
+                        </h4>
+                        <div id="kg-inspect-details" style="font-size: 0.85rem; color: var(--text-muted);">
+                            <p>Hover or click on any node in the Knowledge Graph to inspect its metadata, entity category, and linked relations stored in the Neo4j database.</p>
+                        </div>
+                        
+                        <h4 style="color: #ffffff; font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.5rem;">Neo4j Triples (Relationships)</h4>
+                        <div id="kg-triples-list" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 200px; overflow-y: auto;">
+                            <!-- Triples list -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: AI RESEARCH ASSISTANT (LLM + RAG + KG) (Module 6, 7) -->
+        <section id="tab-chat" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">💬</span>AI Research Assistant</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Ask complex research questions. The system merges document chunks (RAG) with Neo4j context (KG) to formulate answers.</p>
+            </div>
+
+            <!-- RAG+KG workflow visual stepper -->
+            <div class="reasoning-stepper" id="rag-stepper" style="display: none;">
+                <div class="reasoning-step" id="step-rag-chunks">
+                    <span class="reasoning-icon">1</span>
+                    <div><strong>Retrieving Document Chunks (RAG):</strong> Scanning text chunks matching dense vector embeddings.</div>
+                </div>
+                <div class="reasoning-step" id="step-kg-entities">
+                    <span class="reasoning-icon">2</span>
+                    <div><strong>Querying Knowledge Graph (KG):</strong> Extracting connected nodes (algorithms, datasets, organizations) from Neo4j.</div>
+                </div>
+                <div class="reasoning-step" id="step-merge-context">
+                    <span class="reasoning-icon">3</span>
+                    <div><strong>Context Merging:</strong> Aligning context blocks with relational entity tuples to feed the LLM.</div>
+                </div>
+                <div class="reasoning-step" id="step-llm-generate">
+                    <span class="reasoning-icon">4</span>
+                    <div><strong>Generating Response:</strong> Invoking Gemini API with augmented RAG+KG semantic templates.</div>
+                </div>
+            </div>
+
+            <!-- Explain Mode Controls (Module 7) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">💡 AI Explain Mode:</span>
+                    <div style="display: flex; gap: 4px;">
+                        <button class="audience-btn active" onclick="switchExplainMode('beginner', this)">Beginner</button>
+                        <button class="audience-btn" onclick="switchExplainMode('undergrad', this)">Undergrad</button>
+                        <button class="audience-btn" onclick="switchExplainMode('postgrad', this)">Postgrad</button>
+                        <button class="audience-btn" onclick="switchExplainMode('researcher', this)">Researcher</button>
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);" id="explain-mode-desc">
+                    Explains topics simply using basic terminology and common metaphors.
+                </div>
+            </div>
+
+            <!-- Chat scroller -->
+            <div class="glass-panel" style="padding: 1.5rem; background: rgba(0,0,0,0.25);">
+                <div id="portal-chat-history" style="height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.25rem; padding-right: 8px;">
+                    <div class="chat-bubble chat-bubble-ai" style="align-self: flex-start; max-width: 80%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.75rem 1rem; border-radius: 12px 12px 12px 0;">
+                        <h5 style="color: var(--secondary); margin-bottom: 4px;">AI Research Assistant</h5>
+                        <p style="font-size: 0.95rem; margin: 0; line-height: 1.5;">
+                            Greetings! I have indexed all workspace assets and the knowledge graphs. Ask me anything, and select an **Explain Mode** target level to see the vocabulary update instantly!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="chat-input-area" style="border: none; padding: 0;">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <input type="text" id="portal-chat-input" class="form-input" placeholder="Ask a question..." style="flex-grow: 1;" onkeydown="if(event.key==='Enter') submitPortalChat()">
+                        <button class="btn btn-primary" onclick="submitPortalChat()">Ask AI ⚡</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: AI WRITING SUITE (Module 8, 9, 10, 11) -->
+        <section id="tab-paper-tools" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">⚡</span>AI Writing Suite</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Generate summaries, citations, presentation slide decks, and oral viva questions mapping your document contents.</p>
+            </div>
+
+            <!-- Tab Buttons for Paper Tools -->
+            <div style="display: flex; gap: 6px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 10px; border: 1px solid var(--glass-border); margin-bottom: 1.5rem; width: fit-content;">
+                <button type="button" class="btn btn-sm" id="tab-write-summary" onclick="switchPaperToolTab('summary')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: var(--primary); color: #ffffff;">📄 Summary Generator</button>
+                <button type="button" class="btn btn-sm" id="tab-write-citation" onclick="switchPaperToolTab('citation')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: transparent; color: var(--text-muted);">📚 Citation Builder</button>
+                <button type="button" class="btn btn-sm" id="tab-write-slides" onclick="switchPaperToolTab('slides')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: transparent; color: var(--text-muted);">📊 Slide Planner</button>
+                <button type="button" class="btn btn-sm" id="tab-write-viva" onclick="switchPaperToolTab('viva')" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; background: transparent; color: var(--text-muted);">🎓 Viva Practice</button>
+            </div>
+
+            <!-- Subtab A: Summary Generator (Module 8) -->
+            <div id="pane-write-summary" class="paper-tool-pane">
+                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                    <div class="glass-panel" style="padding: 1.25rem; height: fit-content; background: rgba(0,0,0,0.2);">
+                        <h4 style="font-size: 1rem; margin-bottom: 1rem; color: white;">Generator Options</h4>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Target Length</label>
+                                <select id="sum-length" class="form-input" style="padding: 0.5rem;">
+                                    <option value="short">Short (1 Page / Abstract Outline)</option>
+                                    <option value="medium" selected>Medium (Standard 3 Pages Summary)</option>
+                                    <option value="detailed">Detailed (Comprehensive Section Breakdown)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Include Sections</label>
+                                <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: white;">
+                                    <label><input type="checkbox" id="chk-sum-abs" checked> Abstract & Scope</label>
+                                    <label><input type="checkbox" id="chk-sum-key" checked> Key Findings</label>
+                                    <label><input type="checkbox" id="chk-sum-meth" checked> Methodology Summary</label>
+                                    <label><input type="checkbox" id="chk-sum-lit" checked> Literature Summary</label>
+                                    <label><input type="checkbox" id="chk-sum-con" checked> Conclusions & Next Steps</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="generateAISummary()" style="width: 100%;">Compile Summary 🧠</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="glass-panel" style="padding: 1.5rem; min-height: 250px; background: rgba(0,0,0,0.25);">
+                            <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem;">
+                                Generated AI Report
+                            </h4>
+                            <div id="summary-output-render" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                                Select options and click "Compile Summary" to execute summary generation on the active workspace document.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab B: Citation Generator (Module 9) -->
+            <div id="pane-write-citation" class="paper-tool-pane" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                    <div>
+                        <h4 style="font-size: 1.1rem; color: white; margin-bottom: 0.5rem;">Automatic Citation Formatter</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Generate standard citations for the active paper based on bibliographic metadata.</p>
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Citation Style</label>
+                            <select id="cite-style" class="form-input" onchange="updateCitationOutput(this.value)">
+                                <option value="apa">APA (7th edition)</option>
+                                <option value="ieee">IEEE Style</option>
+                                <option value="mla">MLA (9th edition)</option>
+                                <option value="chicago">Chicago Manual of Style</option>
+                                <option value="harvard">Harvard Referencing Style</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.3); margin-bottom: 1rem;">
+                            <div id="citation-result-box" style="font-family: monospace; font-size: 0.9rem; word-break: break-all; color: var(--secondary);">
+                                Select style to see formatting
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="copyCitationToClipboard()">📋 Copy Citation</button>
+                    </div>
+
+                    <div>
+                        <div class="glass-panel" style="padding: 1.25rem; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.02); height: 100%;">
+                            <h4 style="font-size: 1.1rem; color: var(--error); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                <span>⚠️</span> Citation Quality Engine
+                            </h4>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                                The parser engine scans references list and in-text references to alert you about missing links.
+                            </p>
+                            <div id="missing-citations-alerts" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab C: Presentation Assistant (Module 10) -->
+            <div id="pane-write-slides" class="paper-tool-pane" style="display: none;">
+                <h4 style="font-size: 1.1rem; color: white; margin-bottom: 0.25rem;">AI Presentation Assistant</h4>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Slide deck builder generating slide-ready points aligned to your research components.</p>
+                
+                <div class="presentation-slider">
+                    <!-- Slides loaded dynamically -->
+                    <div class="presentation-slide active" id="slide-0">
+                        <h4>Slide 1: Introduction</h4>
+                        <p>Detailed outline of your research paper. Select a document from your workspace to initialize your slides outline deck.</p>
+                    </div>
+                </div>
+                <div class="presentation-controls">
+                    <button class="btn btn-secondary btn-sm" onclick="prevSlide()">◀️ Previous Slide</button>
+                    <span id="slide-counter" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Slide 1 of 1</span>
+                    <button class="btn btn-secondary btn-sm" onclick="nextSlide()">Next Slide ▶️</button>
+                </div>
+            </div>
+
+            <!-- Subtab D: Viva Preparation (Module 11) -->
+            <div id="pane-write-viva" class="paper-tool-pane" style="display: none;">
+                <h4 style="font-size: 1.1rem; color: white; margin-bottom: 0.25rem;">AI Viva Preparation Desk</h4>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Self-preparation oral defense questions generated at different grading difficulties.</p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;" id="viva-questions-deck">
+                    <!-- Dynamic Viva QA cards -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 6: RESEARCH COMMUNITY FORUM (Module 12) -->
+        <section id="tab-community" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">👥</span>Research Community Forum</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Share research concepts, ask community questions, follow authors, and comment on trending research publications.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Feed Column -->
+                <div>
+                    <!-- Post input box -->
+                    <div class="glass-panel" style="padding: 1.25rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.15);">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Post an Idea / Ask a Question</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <textarea id="community-post-text" class="form-input" rows="3" placeholder="Share a research concept, post a paper link, or seek collaboration..."></textarea>
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Posting publicly as <strong>{{ user.username }}</strong></span>
+                                <button class="btn btn-primary btn-sm" onclick="submitCommunityPost()" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Post to Feed</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Forum posts list -->
+                    <div id="community-posts-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Dynamic forum posts -->
+                    </div>
+                </div>
+
+                <!-- Suggested followers & popular papers -->
+                <div>
+                    <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.25); margin-bottom: 1rem;">
+                        <h4 style="color: #ffffff; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">Top Researchers</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;" id="community-researchers-list">
+                            <!-- Researchers list -->
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.25);">
+                        <h4 style="color: #ffffff; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">Trending Publications</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                            <div style="padding: 0.5rem; background: rgba(255,255,255,0.02); border-radius: 6px;">
+                                <strong style="color: var(--secondary);">[EEG Dataset Analysis]</strong>
+                                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px;">Citations: 104 • Likes: 48</p>
+                            </div>
+                            <div style="padding: 0.5rem; background: rgba(255,255,255,0.02); border-radius: 6px;">
+                                <strong style="color: var(--secondary);">[Hybrid RAG & KG Engines]</strong>
+                                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px;">Citations: 89 • Likes: 110</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 7: COLLABORATION ROOM (Module 13) -->
+        <section id="tab-collab" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">🚪</span>Collaboration Room</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Guide-supervised private room for team students. Post weekly reports, discussions, and official milestones announcements.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Left: Announcements & Weekly reports -->
+                <div>
+                    <h4 style="font-size: 1.1rem; color: white; margin-bottom: 0.75rem;">Weekly Progress Submissions</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;" id="collab-reports-list">
+                        <!-- Weekly reports list -->
+                    </div>
+                    
+                    <h4 style="font-size: 1.1rem; color: white; margin-bottom: 0.75rem;">Official Supervised Announcements</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;" id="collab-announcements-list">
+                        <!-- Announcements list -->
+                    </div>
+                </div>
+
+                <!-- Right: Shared Room Group Chat -->
+                <div>
+                    <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.25);">
+                        <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem;">
+                            Collaboration Room Chat
+                        </h4>
+                        
+                        <div id="collab-chat-scroller" style="height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; padding-right: 4px;">
+                            <!-- Room chat bubbles -->
+                        </div>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="collab-chat-input" class="form-input" placeholder="Type room message..." onkeydown="if(event.key==='Enter') sendCollabChatMessage()">
+                            <button class="btn btn-cyan btn-sm" onclick="sendCollabChatMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 8: GUIDE REVIEW SYSTEM (Module 14) -->
+        <section id="tab-reviews" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">✍️</span>Guide Review & Annotation Engine</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Review student submissions. Add sticky comments annotations, assign marks, and request revisions.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Simulated PDF viewer with annotation layout -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="font-size: 1.1rem; color: white;">Submission: "Adaptive CNN Classification.pdf"</h4>
+                        <span class="badge-pill badge-pending">Pending Review</span>
+                    </div>
+
+                    <div class="glass-panel" style="padding: 1.5rem; background: #ffffff; color: #1e293b; border-radius: 12px; height: 350px; overflow-y: auto; position: relative;">
+                        <!-- Highlighted sentences that guides can click to review annotations -->
+                        <h2 style="color: #0f172a; font-size: 1.4rem; margin-top: 0; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">Adaptive CNN for Medical Classification</h2>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            <span style="background-color: #fef08a; padding: 2px; cursor: pointer; border-bottom: 2px dashed #ca8a04;" onclick="openAnnotationDetails('ann-1', 'Need to cite the source database for MRI.')">The model utilizes a custom convolutional network structure</span> to process T1-weighted brain MRI images. By applying dynamic pooling filters, the feature map dimension adjusts dynamically to conserve compute.
+                        </p>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            We evaluated our approach using a dataset of 5,000 anonymized neuroimaging sessions. <span style="background-color: #fca5a5; padding: 2px; cursor: pointer; border-bottom: 2px dashed #dc2626;" onclick="openAnnotationDetails('ann-2', 'This accuracy value seems too high. Double check calculation.')">The primary classification pipeline scored an overall classification accuracy of 99.4%</span>, outperforming standard ResNet baseline configurations by 12.3%.
+                        </p>
+                        <p style="line-height: 1.6;">
+                            Future iterations of this platform will incorporate GNN networks to parse entity relationships directly into graph databases, providing structured metadata for RAG-augmented query prompts.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Review details, grading and action inputs -->
+                <div>
+                    <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.2); height: 100%;">
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: white;">Review & Feedback Panel</h4>
+                        
+                        <div id="annotation-inspector-box" style="padding: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-muted);">
+                            Click highlighted text in the document viewer on the left to read/edit annotations.
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Grade Score (0-100)</label>
+                                <input type="number" id="review-score" class="form-input" min="0" max="100" value="85" style="padding: 0.4rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Comments / Annotations</label>
+                                <textarea id="review-comments" class="form-input" rows="3" placeholder="Provide general feedback comments..."></textarea>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">Decision Status</label>
+                                <select id="review-decision" class="form-input" style="padding: 0.4rem;">
+                                    <option value="approved">Approve Submission</option>
+                                    <option value="revision">Request Resubmission</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="submitGuideReview()" style="width: 100%;">Submit Review Decision</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 9: PROGRESS TRACKING DASHBOARD (Module 15) -->
+        <section id="tab-progress" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">📊</span>Progress Tracking Dashboard</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Track publication stages, check milestone percentages, and inspect AI computational usage statistics.</p>
+            </div>
+
+            <!-- Stats grid -->
+            <div class="analytics-grid">
+                <div class="glass-panel stat-widget" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2);">
+                    <div style="font-size: 2rem;">🧠</div>
+                    <h3 style="font-size: 1.8rem; margin: 0.5rem 0;" id="stat-ai-calls">142</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">AI Engine Calls</p>
+                </div>
+                <div class="glass-panel stat-widget" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2);">
+                    <div style="font-size: 2rem;">📄</div>
+                    <h3 style="font-size: 1.8rem; margin: 0.5rem 0;" id="stat-papers">3</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Papers Uploaded</p>
+                </div>
+                <div class="glass-panel stat-widget" style="background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.2);">
+                    <div style="font-size: 2rem;">🏆</div>
+                    <h3 style="font-size: 1.8rem; margin: 0.5rem 0;" id="stat-milestones">82%</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Overall Completion</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Milestones checklist -->
+                <div>
+                    <h4 style="font-size: 1.1rem; color: white; margin-bottom: 1rem;">Project Completion Milestones</h4>
+                    
+                    <div class="progress-track-wrapper">
+                        <div class="progress-track-header">
+                            <span>Module 1-3: Setup & Ingest</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-track-bar">
+                            <div class="progress-track-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-track-wrapper">
+                        <div class="progress-track-header">
+                            <span>Module 4-5: KG Construction & Visualization</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-track-bar">
+                            <div class="progress-track-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-track-wrapper">
+                        <div class="progress-track-header">
+                            <span>Module 6-11: AI Writing Assistant Suite</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="progress-track-bar">
+                            <div class="progress-track-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-track-wrapper">
+                        <div class="progress-track-header">
+                            <span>Module 12-14: Review & Community System</span>
+                            <span>70%</span>
+                        </div>
+                        <div class="progress-track-bar">
+                            <div class="progress-track-fill" style="width: 70%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-track-wrapper">
+                        <div class="progress-track-header">
+                            <span>Module 15: Publications Pipeline Submission</span>
+                            <span>50%</span>
+                        </div>
+                        <div class="progress-track-bar">
+                            <div class="progress-track-fill" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic pipeline chart (SVG mock) -->
+                <div>
+                    <h4 style="font-size: 1.1rem; color: white; margin-bottom: 1rem;">Monthly Platform Activity</h4>
+                    <div class="glass-panel" style="padding: 1.25rem; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; height: 220px;">
+                        <!-- Animated SVG Chart -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 150">
+                            <!-- Grid lines -->
+                            <line x1="30" y1="20" x2="280" y2="20" stroke="rgba(255,255,255,0.05)" />
+                            <line x1="30" y1="60" x2="280" y2="60" stroke="rgba(255,255,255,0.05)" />
+                            <line x1="30" y1="100" x2="280" y2="100" stroke="rgba(255,255,255,0.05)" />
+                            <line x1="30" y1="130" x2="280" y2="130" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
+                            
+                            <!-- Graph line -->
+                            <path d="M 40 120 Q 80 80, 120 100 T 200 40 T 270 50" fill="none" stroke="var(--primary)" stroke-width="3" />
+                            <path d="M 40 125 Q 80 110, 120 115 T 200 90 T 270 70" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-dasharray="3" />
+                            
+                            <!-- Legend / Text -->
+                            <text x="30" y="145" fill="var(--text-muted)" font-size="8">May</text>
+                            <text x="120" y="145" fill="var(--text-muted)" font-size="8">Jun</text>
+                            <text x="250" y="145" fill="var(--text-muted)" font-size="8">Jul (Current)</text>
+                            
+                            <circle cx="200" cy="40" r="4" fill="var(--accent)" />
+                            <text x="210" y="38" fill="#ffffff" font-size="8" font-weight="700">RAG Queries Peak</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 10: ROLE DESKS PANEL (For Editor, Reviewer, Coordinator, Dept Head, Administrator, External) -->
+        <section id="tab-role-desks" class="portal-tab-content glass-panel" style="padding: 2rem; display: none;">
+            <div style="margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.5rem; color: var(--secondary);"><span class="panel-header-icon">🏢</span>Academic Role Action Desk</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;" id="role-desk-desc">Action control center for Reviewer, Editor, and departmental chairs.</p>
+            </div>
+
+            <!-- Dynamic container based on active role switcher -->
+            <div id="role-desk-dynamic-content">
+                <!-- Javascript will load the corresponding template component here -->
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- Raw documents payload for JS workspace ingest -->
+<script>
+    // Ingest actual user files from backend context
+    const dbDocuments = [
+        {% for doc in documents %}
+        {
+            id: {{ doc.id }},
+            title: "{{ doc.title|escapejs }}",
+            uploaded_at: "{{ doc.uploaded_at|date:'M d, Y' }}",
+            summary: `{{ doc.summary|escapejs }}`,
+            text: `{{ doc.extracted_text|escapejs }}`
+        }{% if not forloop.last %},{% endif %}
+        {% empty %}
+        // Fallback default mocked document if database contains no elements
+        {
+            id: 991,
+            title: "Adaptive Neural Classification of Brain Scans.pdf",
+            uploaded_at: "Jul 24, 2026",
+            summary: "## Research summary\nThis paper proposes an adaptive convolutional neural network optimized for neuroimaging, yielding 99.4% classification accuracy.",
+            text: "This is a detailed manuscript explaining neuroimaging classification. The architecture uses dynamic convolution pipelines mapping clinical T1-weighted MRI datasets. Abstract:\nConvolutional neural networks are commonly deployed, however computing cost remains high. Here we develop a custom layer. Methodology:\nOur system utilizes a database of T1 images. The neural channels scale based on voxel gradients."
+        }
+        {% endfor %}
+    ];
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Core logic file for portal UI interactivity -->
+<script>
+    // Current application state parameters
+    let currentRole = 'student';
+    let activeTab = 'profile';
+    let currentDocId = null;
+    let interestTags = ["Deep Learning", "Knowledge Graphs", "Medical Imaging"];
+    let skillTags = ["Python", "PyTorch", "Neo4j", "Django", "LLMs"];
+    
+    // Slide index parameter
+    let currentSlideIdx = 0;
+    const slidesData = [
+        { title: "Introduction", content: "AI Research Assistant platform integrates Graph Relational Knowledge (Neo4j) alongside dense semantic text chunks (RAG) to eliminate LLM hallucinations." },
+        { title: "Problem Statement", content: "Standard text search queries fail to understand conceptual connections, leading to sparse citations and isolated research discovery." },
+        { title: "Objectives", content: "Build a document processing parser that extracts structural boundaries, links entities dynamically, and exposes evaluation dashboards for guides, editors, and reviewers." },
+        { title: "Methodology", content: "Chunk document text; identify keywords; query Neo4j nodes mapping relationship triplets; append combined prompt context to Gemini 1.5 Flash API." },
+        { title: "Results", content: "Reduced citation compilation time by 82% and achieved 100% precision in connecting relevant methods across multiple institutional domains." },
+        { title: "Future Scope", content: "Deploy federated database indexing layers across external institutes to support peer-matching and panel grading workflows." }
+    ];
+
+    // Collaboration room mock database
+    let collabChatHistory = [
+        { sender: "Prof. Sharma (Guide)", text: "Team, please upload your weekly progress reports on EEG classifications by Friday night.", time: "10:15 AM" },
+        { sender: "Arjun (Student)", text: "I have uploaded my draft in the workspace, Professor. The parser split the methodology block successfully.", time: "11:30 AM" }
+    ];
+
+    // Node network for Knowledge Graph (Module 5)
+    const graphData = {
+        nodes: [
+            { id: "CNN", category: "Algorithm", x: 150, y: 150, color: "var(--primary)" },
+            { id: "MRI Dataset", category: "Dataset", x: 300, y: 150, color: "var(--secondary)" },
+            { id: "Medical Imaging", category: "Specialization", x: 450, y: 150, color: "var(--accent)" },
+            { id: "PyTorch", category: "Framework", x: 150, y: 280, color: "var(--success)" },
+            { id: "Neo4j", category: "Database", x: 300, y: 280, color: "var(--warning)" },
+            { id: "RAG Engine", category: "Technology", x: 450, y: 280, color: "#f43f5e" }
+        ],
+        links: [
+            { source: "CNN", target: "MRI Dataset", relation: "uses" },
+            { source: "MRI Dataset", target: "Medical Imaging", relation: "belongs to" },
+            { source: "PyTorch", target: "CNN", relation: "implements" },
+            { source: "Neo4j", target: "MRI Dataset", relation: "indexes" },
+            { source: "RAG Engine", target: "Neo4j", relation: "queries" },
+            { source: "CNN", target: "RAG Engine", relation: "explained by" }
+        ]
+    };
+
+    // Simulated forum database
+    let forumPosts = [
+        { id: 1, author: "Dr. Rachel Green", affiliation: "Stanford", text: "Excited to share our new pre-print on Knowledge Graph alignment metrics! We compared RDF vs Property Graphs in indexing clinical trials. Link: arxiv.org/abs/2607.0394", likes: 24, liked: false, commentsCount: 5 },
+        { id: 2, author: "Amit Kumar", affiliation: "IISc Bangalore", text: "Can anyone recommend a clean method for cleaning PyPDF2 extraction artifacts? We are getting weird spacing issues on two-column IEEE paper margins.", likes: 12, liked: false, commentsCount: 8 }
+    ];
+
+    // Startup initializer
+    document.addEventListener("DOMContentLoaded", () => {
+        // Initialize profile tags
+        renderTags('interests');
+        renderTags('skills');
+        
+        // Load collaborator recommendations
+        renderCollaboratorMatches();
+        
+        // Render file workspace list
+        renderWorkspaceFileList();
+        
+        // Load default document details if database contains items
+        if (dbDocuments.length > 0) {
+            loadWorkspaceDoc(dbDocuments[0].id);
+        }
+        
+        // Render Knowledge Graph
+        renderKGGraph();
+        
+        // Initialize Forum Feed
+        renderForumFeed();
+        
+        // Load Collaboration chat
+        renderCollabChat();
+        
+        // Set first tab visible
+        switchTab('profile');
+    });
+
+    // ==========================================================================
+    // Tab and Role switching logic
+    // ==========================================================================
+    function switchTab(tabId) {
+        activeTab = tabId;
+        // Hide all tabs
+        document.querySelectorAll('.portal-tab-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Show target tab
+        const targetEl = document.getElementById(`tab-${tabId}`);
+        if (targetEl) {
+            targetEl.style.display = 'block';
+        }
+        
+        // Update sidebar button states
+        document.querySelectorAll('.portal-sidebar-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const activeBtn = document.getElementById(`btn-${tabId}`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+        // Specific actions on tab activate
+        if (tabId === 'progress') {
+            triggerProgressBarAnimation();
+        }
+    }
+
+    function changeAcademicRole(roleVal) {
+        currentRole = roleVal;
+        
+        // Show guide elements if guide or admin, else hide
+        const navGuide = document.getElementById('nav-group-guide');
+        const navResearcher = document.getElementById('nav-group-researcher');
+        
+        // Display controls based on role clearance
+        if (roleVal === 'guide') {
+            navGuide.style.display = 'block';
+            navResearcher.style.display = 'none';
+            switchTab('reviews');
+        } else if (roleVal === 'student') {
+            navGuide.style.display = 'none';
+            navResearcher.style.display = 'block';
+            switchTab('profile');
+        } else {
+            // General administrative or other roles
+            navGuide.style.display = 'none';
+            navResearcher.style.display = 'block';
+            switchTab('role-desks');
+            renderRoleDeskContent(roleVal);
+        }
+
+        // Update badge labels
+        const badge = document.getElementById('role-display-badge');
+        const roleOptionsMap = {
+            student: 'Student / Researcher',
+            guide: 'Guide / Supervisor',
+            reviewer: 'Peer Reviewer',
+            editor: 'Journal Editor',
+            panel_member: 'Viva Panel Member',
+            coordinator: 'Journal Coordinator',
+            dept_head: 'Department Head',
+            external: 'External Researcher',
+            admin: 'Platform Admin'
+        };
+        badge.innerText = roleOptionsMap[roleVal] || 'Researcher';
+        
+        // Update avatars text
+        document.getElementById('sidebar-avatar').innerText = roleVal.substring(0, 1).toUpperCase();
+    }
+
+    // ==========================================================================
+    // Module 1: Academic Profile & Matches
+    // ==========================================================================
+    function renderTags(type) {
+        const container = document.getElementById(`${type}-tags-container`);
+        const tags = type === 'interests' ? interestTags : skillTags;
+        container.innerHTML = '';
+        
+        tags.forEach((tag, idx) => {
+            const span = document.createElement('span');
+            span.className = 'interactive-tag';
+            span.innerHTML = `${tag} <button type="button" onclick="removeTag('${type}', ${idx})">&times;</button>`;
+            container.appendChild(span);
+        });
+    }
+
+    // Tag keyboard entry
+    function handleTagInput(event, type) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const input = document.getElementById(`${type}-input`);
+            const val = input.value.trim();
+            if (val) {
+                if (type === 'interests') {
+                    if (!interestTags.includes(val)) interestTags.push(val);
+                } else {
+                    if (!skillTags.includes(val)) skillTags.push(val);
+                }
+                input.value = '';
+                renderTags(type);
+                renderCollaboratorMatches();
+            }
+        }
+    }
+
+    function removeTag(type, index) {
+        if (type === 'interests') {
+            interestTags.splice(index, 1);
+        } else {
+            skillTags.splice(index, 1);
+        }
+        renderTags(type);
+        renderCollaboratorMatches();
+    }
+
+    function renderCollaboratorMatches() {
+        const list = document.getElementById('collaborator-matches-list');
+        list.innerHTML = '';
+        
+        // Mock collaborator database matches
+        const scholars = [
+            { name: "Dr. Sarah Jenkins", affiliation: "MIT Lab", spec: "GNNs & Knowledge Graphs", matchPercent: 94, keywords: ["Knowledge Graphs", "Deep Learning"] },
+            { name: "Prof. Rajesh Patel", affiliation: "IISc Bangalore", spec: "Neuroimaging Classification", matchPercent: 88, keywords: ["Deep Learning", "Medical Imaging"] },
+            { name: "Elena Rostova", affiliation: "Oxford University", spec: "Bioinformatics Pipelines", matchPercent: 75, keywords: ["Python", "NLP"] }
+        ];
+
+        scholars.forEach(scholar => {
+            // Check matching overlap keywords
+            const overlapping = scholar.keywords.filter(keyword => 
+                interestTags.includes(keyword) || skillTags.includes(keyword)
+            );
+            
+            const scoreOffset = overlapping.length * 10;
+            const finalScore = Math.min(scholar.matchPercent + scoreOffset, 99);
+
+            const div = document.createElement('div');
+            div.className = 'match-card';
+            div.innerHTML = `
+                <div>
+                    <h5 style="color: white; font-size: 0.95rem;">${scholar.name}</h5>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">${scholar.affiliation} • ${scholar.spec}</p>
+                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                        ${scholar.keywords.map(k => `<span style="font-size: 0.7rem; background: rgba(255,255,255,0.04); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--glass-border);">${k}</span>`).join('')}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--secondary);">${finalScore}% Match</div>
+                    <button class="btn btn-secondary btn-sm" onclick="alert('Sent collaborative invitation to ${scholar.name}!')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-top: 4px;">Invite</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function saveProfile() {
+        alert("Success: Academic Profile updated. JWT token authorization headers refreshed.");
+    }
+
+    // ==========================================================================
+    // Module 2 & 3: Workspace & Document Parser
+    // ==========================================================================
+    function renderWorkspaceFileList() {
+        const list = document.getElementById('workspace-file-list');
+        list.innerHTML = '';
+        
+        dbDocuments.forEach(doc => {
+            const div = document.createElement('div');
+            div.className = `doc-card glass-panel glass-interactive ${currentDocId === doc.id ? 'active' : ''}`;
+            div.style.padding = '0.75rem';
+            div.style.marginBottom = '0px';
+            div.style.cursor = 'pointer';
+            div.style.borderColor = currentDocId === doc.id ? 'var(--secondary)' : 'var(--glass-border)';
+            div.onclick = () => loadWorkspaceDoc(doc.id);
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; font-size: 0.85rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">📄 ${doc.title}</span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">${doc.uploaded_at}</span>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function loadWorkspaceDoc(id) {
+        currentDocId = id;
+        renderWorkspaceFileList();
+        
+        const doc = dbDocuments.find(d => d.id === id);
+        if (!doc) return;
+
+        // Show panel, hide empty state
+        document.getElementById('workspace-empty-panel').style.display = 'none';
+        document.getElementById('workspace-detail-panel').style.display = 'block';
+
+        document.getElementById('workspace-doc-title').innerText = doc.title;
+        document.getElementById('workspace-doc-preview').innerText = doc.text || "No text available in this document. Processing failed.";
+        
+        // Mock parsing metrics (Module 3)
+        const wordCount = doc.text ? doc.text.split(' ').length : 0;
+        document.getElementById('parser-tokens').innerText = (wordCount * 1.3).toFixed(0);
+        document.getElementById('parser-cleaned-pct').innerText = "99.8%";
+
+        // Build extracted sections (Module 3)
+        const sectionsList = document.getElementById('workspace-sections-list');
+        sectionsList.innerHTML = '';
+        
+        const mockSections = [
+            { name: "Abstract", lines: "Lines 1-15", preview: doc.text.substring(0, 100) + "..." },
+            { name: "Introduction", lines: "Lines 16-60", preview: doc.text.substring(50, 150) + "..." },
+            { name: "Methodology & Frameworks", lines: "Lines 61-180", preview: doc.text.substring(100, 220) + "..." }
+        ];
+
+        mockSections.forEach(sec => {
+            const div = document.createElement('div');
+            div.className = 'parsed-section';
+            div.innerHTML = `
+                <div class="parsed-section-header">
+                    <strong style="color: var(--secondary); font-size: 0.9rem;">Section: ${sec.name}</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">${sec.lines}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">${sec.preview}</div>
+            `;
+            sectionsList.appendChild(div);
+        });
+
+        // Initialize Citation & Viva answers for active doc
+        updateCitationOutput(document.getElementById('cite-style').value);
+        initializeVivaQuestions();
+        initializePresentationSlides(doc.title);
+    }
+
+    function triggerWorkspaceUpload() {
+        document.getElementById('portal-file-input').click();
+    }
+
+    function handlePortalUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Mock django database insert
+        const newDoc = {
+            id: Date.now(),
+            title: file.name,
+            uploaded_at: "Today",
+            summary: "## AI Summary generated for " + file.name + "\nThis paper expands on general workflows.",
+            text: "Uploaded draft manuscript contents for " + file.name + ". Parsing completed. Formatting irregularities cleaned successfully. Ready for embed mapping."
+        };
+        
+        dbDocuments.push(newDoc);
+        renderWorkspaceFileList();
+        loadWorkspaceDoc(newDoc.id);
+        
+        alert("Upload completed: Document parser engine indexed: " + file.name);
+    }
+
+    function deleteWorkspaceDoc() {
+        if (!currentDocId) return;
+        const idx = dbDocuments.findIndex(d => d.id === currentDocId);
+        if (idx !== -1) {
+            dbDocuments.splice(idx, 1);
+            currentDocId = null;
+            renderWorkspaceFileList();
+            
+            document.getElementById('workspace-empty-panel').style.display = 'block';
+            document.getElementById('workspace-detail-panel').style.display = 'none';
+        }
+    }
+
+    // ==========================================================================
+    // Module 4 & 5: Knowledge Graph Construction & Visualization (Neo4j)
+    // ==========================================================================
+    function renderKGGraph() {
+        const svg = document.getElementById('kg-svg');
+        svg.innerHTML = ''; // clear
+
+        // Draw Links first so they are placed behind nodes
+        graphData.links.forEach(link => {
+            const sourceNode = graphData.nodes.find(n => n.id === link.source);
+            const targetNode = graphData.nodes.find(n => n.id === link.target);
+            if (!sourceNode || !targetNode) return;
+
+            // Draw line
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", sourceNode.x);
+            line.setAttribute("y1", sourceNode.y);
+            line.setAttribute("x2", targetNode.x);
+            line.setAttribute("y2", targetNode.y);
+            line.setAttribute("class", "link");
+            line.setAttribute("id", `link-${sourceNode.id}-${targetNode.id}`);
+            svg.appendChild(line);
+
+            // Draw label
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", (sourceNode.x + targetNode.x) / 2);
+            label.setAttribute("y", (sourceNode.y + targetNode.y) / 2 - 5);
+            label.setAttribute("class", "link-label");
+            label.textContent = link.relation;
+            svg.appendChild(label);
+        });
+
+        // Draw Nodes
+        graphData.nodes.forEach(node => {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", "node");
+            g.setAttribute("id", `node-${node.id}`);
+            g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+            g.addEventListener('click', () => inspectEntity(node.id));
+            
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("r", "20");
+            circle.setAttribute("fill", node.color);
+            circle.setAttribute("stroke", "#ffffff");
+            circle.setAttribute("stroke-width", "2");
+            g.appendChild(circle);
+
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("y", "4");
+            text.setAttribute("font-size", "10px");
+            text.textContent = node.id.substring(0, 10);
+            g.appendChild(text);
+
+            svg.appendChild(g);
+        });
+
+        // Render Triple instances list table
+        const triplesList = document.getElementById('kg-triples-list');
+        triplesList.innerHTML = '';
+        graphData.links.forEach(link => {
+            const div = document.createElement('div');
+            div.style.background = 'rgba(255,255,255,0.02)';
+            div.style.padding = '0.3rem 0.6rem';
+            div.style.border = '1px solid var(--glass-border)';
+            div.style.borderRadius = '6px';
+            div.style.fontSize = '0.75rem';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.innerHTML = `
+                <span><strong>${link.source}</strong></span>
+                <span style="color: var(--accent); font-weight: bold;">--[${link.relation}]--></span>
+                <span><strong>${link.target}</strong></span>
+            `;
+            triplesList.appendChild(div);
+        });
+    }
+
+    function inspectEntity(nodeId) {
+        const node = graphData.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+
+        const details = document.getElementById('kg-inspect-details');
+        document.getElementById('kg-inspect-title').innerText = `Entity: ${node.id}`;
+        
+        // Find links
+        const connections = graphData.links.filter(l => l.source === nodeId || l.target === nodeId);
+        
+        details.innerHTML = `
+            <div style="margin-bottom: 8px;"><strong>Category:</strong> <span class="badge-pill badge-approved">${node.category}</span></div>
+            <div style="margin-bottom: 8px;"><strong>Database Type:</strong> Neo4j Graph Database Label</div>
+            <div style="margin-bottom: 8px;"><strong>Connections Found:</strong> ${connections.length}</div>
+            <ul style="padding-left: 15px; margin-top: 5px;">
+                ${connections.map(c => `<li>${c.source} <span style="color: var(--accent);">${c.relation}</span> ${c.target}</li>`).join('')}
+            </ul>
+        `;
+
+        // Highlight nodes in SVG
+        document.querySelectorAll('.node circle').forEach(c => c.setAttribute('stroke-width', '2'));
+        const activeNodeCircle = document.querySelector(`#node-${nodeId} circle`);
+        if (activeNodeCircle) {
+            activeNodeCircle.setAttribute('stroke-width', '4');
+        }
+    }
+
+    function filterGraph(query) {
+        const q = query.toLowerCase();
+        graphData.nodes.forEach(node => {
+            const el = document.getElementById(`node-${node.id}`);
+            if (node.id.toLowerCase().includes(q) || node.category.toLowerCase().includes(q)) {
+                el.style.opacity = '1';
+            } else {
+                el.style.opacity = '0.2';
+            }
+        });
+    }
+
+    function resetGraphVisuals() {
+        document.querySelectorAll('.node').forEach(el => el.style.opacity = '1');
+        document.querySelectorAll('.node circle').forEach(c => c.setAttribute('stroke-width', '2'));
+        document.getElementById('kg-inspect-title').innerText = "Entity Inspector";
+        document.getElementById('kg-inspect-details').innerHTML = "<p>Hover or click on any node in the Knowledge Graph to inspect its metadata, entity category, and linked relations stored in the Neo4j database.</p>";
+    }
+
+    // ==========================================================================
+    // Module 6 & 7: AI Chat Assistant with RAG + KG reasoning and Explain Mode
+    // ==========================================================================
+    let explainAudience = 'beginner';
+    const explanationDict = {
+        beginner: {
+            desc: "Explains topics simply using basic terminology and common metaphors.",
+            ans: "The custom network functions like a camera with an smart lens that automatically changes focus. When it views complex brain scans, it zooms in on structural damages, while filtering out normal cells. By doing so, it saves energy and calculates results in a fraction of normal time, scoring 99.4% accuracy."
+        },
+        undergrad: {
+            desc: "Uses foundational textbook explanations with basic math concepts.",
+            ans: "The model proposes an optimized Convolutional Layer that overrides standard static pooling filters. During forward-propagation, the kernel dimensions adjust dynamically proportional to local gradient values, conserving computing operations. Accuracy benchmarks achieve 99.4%."
+        },
+        postgrad: {
+            desc: "Addresses graduate-level concepts, including hyperparameter weights.",
+            ans: "By dynamically scaling pooling vectors in proportion to backpropagation loss variances, this custom convolution layer bounds compute complexities. Experimental outcomes validate a 99.4% sensitivity rating across multi-channel MRI data arrays."
+        },
+        researcher: {
+            desc: "Advanced review outlining novel contributions, hardware configs, and math constraints.",
+            ans: "Our architectural framework maps localized spatial gradients directly to kernel dimension scales. This mitigates computing bottlenecks during high-dimensional voxel processing. At 99.4% classification accuracy, this represents a significant improvement over baseline ResNet networks."
+        }
+    };
+
+    function switchExplainMode(mode, btn) {
+        explainAudience = mode;
+        
+        // Toggle button styling
+        document.querySelectorAll('.audience-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update explanation description
+        document.getElementById('explain-mode-desc').innerText = explanationDict[mode].desc;
+
+        // If there's an existing chat answer from AI, rewrite the last answer dynamically
+        const bubbles = document.querySelectorAll('.chat-bubble-ai p');
+        if (bubbles.length > 1) {
+            bubbles[bubbles.length - 1].innerText = explanationDict[mode].ans;
+        }
+    }
+
+    function submitPortalChat() {
+        const input = document.getElementById('portal-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Add user question
+        const history = document.getElementById('portal-chat-history');
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-bubble chat-bubble-user';
+        userDiv.style.alignSelf = 'flex-end';
+        userDiv.style.maxWidth = '80%';
+        userDiv.style.background = 'var(--primary-glow)';
+        userDiv.style.border = '1px solid var(--primary)';
+        userDiv.style.padding = '0.75rem 1rem';
+        userDiv.style.borderRadius = '12px 12px 0 12px';
+        userDiv.style.color = '#ffffff';
+        userDiv.innerHTML = `<h5 style="color: var(--secondary); margin-bottom: 4px;">You</h5><p style="font-size: 0.95rem; margin: 0;">${text}</p>`;
+        history.appendChild(userDiv);
+
+        input.value = '';
+        history.scrollTop = history.scrollHeight;
+
+        // Start visual RAG reasoning steps
+        const stepper = document.getElementById('rag-stepper');
+        stepper.style.display = 'flex';
+        
+        // Reset reasoning step states
+        document.querySelectorAll('.reasoning-step').forEach(s => {
+            s.className = 'reasoning-step';
+        });
+
+        // Step 1: RAG
+        const step1 = document.getElementById('step-rag-chunks');
+        step1.classList.add('active');
+
+        setTimeout(() => {
+            step1.classList.remove('active');
+            step1.classList.add('completed');
+            
+            // Step 2: KG
+            const step2 = document.getElementById('step-kg-entities');
+            step2.classList.add('active');
+            
+            setTimeout(() => {
+                step2.classList.remove('active');
+                step2.classList.add('completed');
+                
+                // Step 3: Merge
+                const step3 = document.getElementById('step-merge-context');
+                step3.classList.add('active');
+                
+                setTimeout(() => {
+                    step3.classList.remove('active');
+                    step3.classList.add('completed');
+                    
+                    // Step 4: Generate
+                    const step4 = document.getElementById('step-llm-generate');
+                    step4.classList.add('active');
+                    
+                    setTimeout(() => {
+                        step4.classList.remove('active');
+                        step4.classList.add('completed');
+                        
+                        // Hide stepper and insert AI response
+                        stepper.style.display = 'none';
+                        
+                        const aiDiv = document.createElement('div');
+                        aiDiv.className = 'chat-bubble chat-bubble-ai';
+                        aiDiv.style.alignSelf = 'flex-start';
+                        aiDiv.style.maxWidth = '80%';
+                        aiDiv.style.background = 'rgba(255,255,255,0.03)';
+                        aiDiv.style.border = '1px solid var(--glass-border)';
+                        aiDiv.style.padding = '0.75rem 1rem';
+                        aiDiv.style.borderRadius = '12px 12px 12px 0';
+                        
+                        const answerText = explanationDict[explainAudience].ans;
+                        aiDiv.innerHTML = `<h5 style="color: var(--secondary); margin-bottom: 4px;">AI Research Assistant</h5><p style="font-size: 0.95rem; margin: 0; line-height: 1.5;">${answerText}</p>`;
+                        history.appendChild(aiDiv);
+                        history.scrollTop = history.scrollHeight;
+                        
+                    }, 800);
+                }, 800);
+            }, 800);
+        }, 800);
+    }
+
+    // ==========================================================================
+    // Module 8, 9, 10, 11: AI Writing & Paper Suite
+    // ==========================================================================
+    function switchPaperToolTab(subTabId) {
+        // Toggle active tabs buttons
+        document.querySelectorAll('#tab-write-summary, #tab-write-citation, #tab-write-slides, #tab-write-viva').forEach(btn => {
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-muted)';
+        });
+        
+        const activeBtn = document.getElementById(`tab-write-${subTabId}`);
+        activeBtn.style.background = 'var(--primary)';
+        activeBtn.style.color = '#ffffff';
+
+        // Show pane
+        document.querySelectorAll('.paper-tool-pane').forEach(pane => {
+            pane.style.display = 'none';
+        });
+        document.getElementById(`pane-write-${subTabId}`).style.display = 'block';
+    }
+
+    // Summary Generator
+    function generateAISummary() {
+        const len = document.getElementById('sum-length').value;
+        const renderTarget = document.getElementById('summary-output-render');
+        renderTarget.innerHTML = "<em>Compiling paper context vectors... Querying backend summarizing models...</em>";
+
+        setTimeout(() => {
+            let html = `<h3>Executive Summary Report</h3><br>`;
+            if (document.getElementById('chk-sum-abs').checked) {
+                html += `<strong>Abstract:</strong> This research establishes a custom dynamic pooling architecture optimized for clinical neuroimaging datasets, delivering 99.4% classification rates while reducing compute operations.<br><br>`;
+            }
+            if (document.getElementById('chk-sum-key').checked) {
+                html += `<strong>Key Findings:</strong><br>• Outperformed standard ResNet baseline configurations by 12.3%.<br>• Reduced model size parameter weights by 45%.<br><br>`;
+            }
+            if (document.getElementById('chk-sum-meth').checked) {
+                html += `<strong>Methodology:</strong> Convolution boundaries are mathematically constrained using localized spatial gradient maps, adjusting kernel dimensions dynamically during propagation pass.<br><br>`;
+            }
+            
+            renderTarget.innerHTML = html;
+        }, 1200);
+    }
+
+    // Citations Builder
+    const citationsDb = {
+        apa: "Green, R., & Patel, R. (2026). Adaptive Neural Classification of Clinical Brain Scans using Knowledge Graph Pipelines. Journal of Neuroinformatics, 12(4), 145-156.",
+        ieee: "[1] R. Green and R. Patel, \"Adaptive Neural Classification of Clinical Brain Scans using Knowledge Graph Pipelines,\" Journal of Neuroinformatics, vol. 12, no. 4, pp. 145-156, 2026.",
+        mla: "Green, Rachel, and Rajesh Patel. \"Adaptive Neural Classification of Clinical Brain Scans using Knowledge Graph Pipelines.\" Journal of Neuroinformatics, vol. 12, no. 4, 2026, pp. 145-156.",
+        chicago: "Green, Rachel, and Rajesh Patel. \"Adaptive Neural Classification of Clinical Brain Scans using Knowledge Graph Pipelines.\" Journal of Neuroinformatics 12, no. 4 (2026): 145-156.",
+        harvard: "GREEN, R. & PATEL, R. 2026. Adaptive Neural Classification of Clinical Brain Scans using Knowledge Graph Pipelines. Journal of Neuroinformatics, 12, 145-156."
+    };
+
+    function updateCitationOutput(style) {
+        const target = document.getElementById('citation-result-box');
+        if (citationsDb[style]) {
+            target.innerText = citationsDb[style];
+        }
+
+        // Render missing citations alerts (Module 9)
+        const alertsList = document.getElementById('missing-citations-alerts');
+        alertsList.innerHTML = `
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239,68,68,0.2); padding: 8px; border-radius: 6px; font-size: 0.8rem; color: #ffffff;">
+                <strong>Missing reference mapping:</strong> "Voxel convolution boundaries" is mentioned in page 3, but missing corresponding citation in bibliography index.
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245,158,11,0.2); padding: 8px; border-radius: 6px; font-size: 0.8rem; color: #ffffff;">
+                <strong>Mismatched author year:</strong> Patel et al. referenced in-text as (2024), but publication catalog lists it as 2025.
+            </div>
+        `;
+    }
+
+    function copyCitationToClipboard() {
+        const text = document.getElementById('citation-result-box').innerText;
+        navigator.clipboard.writeText(text);
+        alert("Citation copied to clipboard successfully!");
+    }
+
+    // Presentation Slider
+    function initializePresentationSlides(title) {
+        const slider = document.querySelector('.presentation-slider');
+        slider.innerHTML = '';
+
+        slidesData.forEach((slide, idx) => {
+            const div = document.createElement('div');
+            div.className = `presentation-slide ${idx === 0 ? 'active' : ''}`;
+            div.id = `slide-${idx}`;
+            div.innerHTML = `
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; display: block;">Slide Outline</span>
+                <h4>${slide.title}</h4>
+                <p>${slide.content}</p>
+            `;
+            slider.appendChild(div);
+        });
+
+        currentSlideIdx = 0;
+        updateSlideControls();
+    }
+
+    function updateSlideControls() {
+        document.getElementById('slide-counter').innerText = `Slide ${currentSlideIdx + 1} of ${slidesData.length}`;
+    }
+
+    function nextSlide() {
+        if (currentSlideIdx < slidesData.length - 1) {
+            document.getElementById(`slide-${currentSlideIdx}`).classList.remove('active');
+            currentSlideIdx++;
+            document.getElementById(`slide-${currentSlideIdx}`).classList.add('active');
+            updateSlideControls();
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlideIdx > 0) {
+            document.getElementById(`slide-${currentSlideIdx}`).classList.remove('active');
+            currentSlideIdx--;
+            document.getElementById(`slide-${currentSlideIdx}`).classList.add('active');
+            updateSlideControls();
+        }
+    }
+
+    // Viva preparation
+    const vivaData = [
+        { id: 1, difficulty: "easy", question: "What is the primary contribution of this research?", answer: "The development of a dynamic spatial convolution layer that adjusts kernel pooling dimensions locally to conserve computational budgets." },
+        { id: 2, difficulty: "medium", question: "How does the Dynamic Pooling structure scale voxel features without losing spatial dimensions?", answer: "It incorporates localized spatial gradient thresholds that scale kernel vectors, retaining edge details while shrinking redundant matrix indices." },
+        { id: 3, difficulty: "advanced", question: "Under what loss criteria does the backpropagation gradient of the dynamic layer remain stable?", answer: "The backpropagation remains stable because the kernel adjustments are mathematically bounded by lipschitz continuous bounds." }
+    ];
+
+    function initializeVivaQuestions() {
+        const deck = document.getElementById('viva-questions-deck');
+        deck.innerHTML = '';
+
+        vivaData.forEach(item => {
+            const diffClass = item.difficulty === 'easy' ? 'badge-approved' : (item.difficulty === 'medium' ? 'badge-pending' : 'badge-revision');
+            
+            const div = document.createElement('div');
+            div.className = 'glass-panel';
+            div.style.padding = '1rem';
+            div.style.background = 'rgba(255, 255, 255, 0.02)';
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span class="badge-pill ${diffClass}" style="text-transform: uppercase;">Difficulty: ${item.difficulty}</span>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleVivaAnswer(${item.id})" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Toggle Answer</button>
+                </div>
+                <strong style="color: white; font-size: 0.9rem;">Q: ${item.question}</strong>
+                <div id="viva-ans-${item.id}" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                    <strong>Model Answer:</strong><br>${item.answer}
+                </div>
+            `;
+            deck.appendChild(div);
+        });
+    }
+
+    function toggleVivaAnswer(qId) {
+        const target = document.getElementById(`viva-ans-${qId}`);
+        if (target.style.display === 'none') {
+            target.style.display = 'block';
+        } else {
+            target.style.display = 'none';
+        }
+    }
+
+    // ==========================================================================
+    // Module 12: Community Forum
+    // ==========================================================================
+    function renderForumFeed() {
+        const feed = document.getElementById('community-posts-list');
+        feed.innerHTML = '';
+
+        forumPosts.forEach(post => {
+            const card = document.createElement('div');
+            card.className = 'social-card';
+            card.innerHTML = `
+                <div class="social-header">
+                    <div class="social-avatar">${post.author.substring(0, 1)}</div>
+                    <div>
+                        <strong style="color: white; font-size: 0.95rem;">${post.author}</strong>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">${post.affiliation} • Faculty Member</p>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main);">${post.text}</p>
+                <div class="social-actions">
+                    <button class="social-action-btn ${post.liked ? 'active' : ''}" onclick="likeCommunityPost(${post.id})">
+                        ❤️ <span>${post.likes}</span> Likes
+                    </button>
+                    <button class="social-action-btn" onclick="alert('Comment interface enabled on main publishing server.')">
+                        💬 <span>${post.commentsCount}</span> Comments
+                    </button>
+                </div>
+            `;
+            feed.appendChild(card);
+        });
+
+        // Load suggested follows
+        const followers = document.getElementById('community-researchers-list');
+        followers.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                <span>👤 Dr. Sarah Jenkins (MIT)</span>
+                <button class="btn btn-secondary btn-sm" onclick="this.innerText='Following'" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Follow</button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 8px;">
+                <span>👤 Prof. Elena Rostova (Oxford)</span>
+                <button class="btn btn-secondary btn-sm" onclick="this.innerText='Following'" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Follow</button>
+            </div>
+        `;
+    }
+
+    function submitCommunityPost() {
+        const textEl = document.getElementById('community-post-text');
+        const text = textEl.value.trim();
+        if (!text) return;
+
+        const newPost = {
+            id: Date.now(),
+            author: "{{ user.username|capfirst }}",
+            affiliation: "IIT Madras",
+            text: text,
+            likes: 0,
+            liked: false,
+            commentsCount: 0
+        };
+
+        forumPosts.unshift(newPost);
+        textEl.value = '';
+        renderForumFeed();
+    }
+
+    function likeCommunityPost(id) {
+        const post = forumPosts.find(p => p.id === id);
+        if (post) {
+            if (post.liked) {
+                post.likes--;
+                post.liked = false;
+            } else {
+                post.likes++;
+                post.liked = true;
+            }
+            renderForumFeed();
+        }
+    }
+
+    // ==========================================================================
+    // Module 13 & 14: Collaboration Room & Guide Reviews
+    // ==========================================================================
+    function renderCollabChat() {
+        const scroller = document.getElementById('collab-chat-scroller');
+        scroller.innerHTML = '';
+
+        collabChatHistory.forEach(msg => {
+            const div = document.createElement('div');
+            const isGuide = msg.sender.includes("Guide");
+            div.style.background = isGuide ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.03)';
+            div.style.border = isGuide ? '1px solid rgba(6,182,212,0.2)' : '1px solid var(--glass-border)';
+            div.style.padding = '0.5rem 0.75rem';
+            div.style.borderRadius = '8px';
+            div.style.fontSize = '0.85rem';
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <strong style="color: ${isGuide ? 'var(--secondary)' : 'white'};">${msg.sender}</strong>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">${msg.time}</span>
+                </div>
+                <div style="color: var(--text-main);">${msg.text}</div>
+            `;
+            scroller.appendChild(div);
+        });
+
+        // Load weekly reports
+        const reportsList = document.getElementById('collab-reports-list');
+        reportsList.innerHTML = `
+            <div class="match-card" style="padding: 0.75rem; margin-bottom: 0.5rem;">
+                <div>
+                    <strong style="font-size: 0.85rem; color: white;">Weekly Progress Report - Week 3</strong>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Submitted: Jul 20, 2026 by Arjun</p>
+                </div>
+                <span class="badge-pill badge-approved">Approved</span>
+            </div>
+            <div class="match-card" style="padding: 0.75rem; margin-bottom: 0.5rem;">
+                <div>
+                    <strong style="font-size: 0.85rem; color: white;">Final Draft Submission - Manuscript</strong>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Submitted: Jul 24, 2026 by Arjun</p>
+                </div>
+                <span class="badge-pill badge-pending">Review Pending</span>
+            </div>
+        `;
+
+        // Load official announcements
+        const announcements = document.getElementById('collab-announcements-list');
+        announcements.innerHTML = `
+            <div class="glass-panel" style="padding: 0.75rem; background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2);">
+                <strong style="color: var(--warning); font-size: 0.85rem;">⚠️ Internal Ethics Approval Form</strong>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Ethical submission form is mandatory before publishing clinical scan datasets.</p>
+            </div>
+        `;
+    }
+
+    function sendCollabChatMessage() {
+        const input = document.getElementById('collab-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const msg = {
+            sender: "{{ user.username|capfirst }} (Student)",
+            text: text,
+            time: "Now"
+        };
+        collabChatHistory.push(msg);
+        input.value = '';
+        renderCollabChat();
+        
+        // Scroll to bottom
+        const scroller = document.getElementById('collab-chat-scroller');
+        scroller.scrollTop = scroller.scrollHeight;
+    }
+
+    function openAnnotationDetails(annId, text) {
+        document.getElementById('annotation-inspector-box').innerHTML = `
+            <strong style="color: var(--accent);">Active Annotation:</strong>
+            <p style="margin-top: 4px; color: white;">"${text}"</p>
+            <input type="text" class="form-input" placeholder="Type response note..." style="margin-top: 8px; padding: 4px 8px; font-size: 0.8rem;">
+            <button class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem; margin-top: 6px;" onclick="alert('Comment Annotation saved.')">Save</button>
+        `;
+    }
+
+    function submitGuideReview() {
+        const score = document.getElementById('review-score').value;
+        const decision = document.getElementById('review-decision').value;
+        alert(`Guide evaluation registered. Score: ${score}/100, Decision: ${decision.toUpperCase()}. Notification dispatched to Student.`);
+    }
+
+    // ==========================================================================
+    // Module 15: Progress Tracking
+    // ==========================================================================
+    function triggerProgressBarAnimation() {
+        setTimeout(() => {
+            document.querySelectorAll('.progress-track-fill').forEach(el => {
+                const width = el.parentElement.previousElementSibling.lastElementChild.innerText;
+                el.style.width = width;
+            });
+        }, 100);
+    }
+
+    // ==========================================================================
+    // Role-Specific Dashboards (Additional Project Roles Desk)
+    // ==========================================================================
+    function renderRoleDeskContent(role) {
+        const container = document.getElementById('role-desk-dynamic-content');
+        const headerTitle = document.getElementById('role-desk-desc');
+        
+        switch (role) {
+            case 'reviewer':
+                headerTitle.innerText = "Review Desk: Peer evaluation panels for assigned manuscript submissions.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Assigned Peer-Reviews Queue</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text-muted);">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left;">
+                                <th style="padding: 0.5rem;">Paper ID</th>
+                                <th style="padding: 0.5rem;">Manuscript Title</th>
+                                <th style="padding: 0.5rem;">Due Date</th>
+                                <th style="padding: 0.5rem;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                                <td style="padding: 0.5rem; color: white;">#MAN-2026-48</td>
+                                <td style="padding: 0.5rem; color: white;">Optimized ConvNet parameters for EEG scan models</td>
+                                <td style="padding: 0.5rem;">Aug 15, 2026</td>
+                                <td style="padding: 0.5rem;"><button class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem;" onclick="alert('Loading reviewer evaluation sheet...')">Evaluate</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                break;
+                
+            case 'editor':
+                headerTitle.innerText = "Editorial Desk: Distribute incoming manuscripts and review reports.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Journal Submission Pipeline</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div class="match-card">
+                            <div>
+                                <strong style="color: white; font-size: 0.9rem;">#MAN-2026-92: EEG Classification Networks</strong>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Author: Amit Kumar • Status: Under Review</p>
+                            </div>
+                            <div>
+                                <select class="form-input" style="padding: 4px 8px; font-size: 0.8rem; width: 150px; display: inline-block; margin-right: 5px;">
+                                    <option>Select Reviewer</option>
+                                    <option>Dr. Sarah Jenkins</option>
+                                    <option>Prof. Rajesh Patel</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;" onclick="alert('Assigned Reviewer successfully!')">Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'panel_member':
+                headerTitle.innerText = "Viva Panel Desk: Oral examination grading metrics.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Upcoming Viva Examinations</h4>
+                    <div class="match-card">
+                        <div>
+                            <strong style="color: white; font-size: 0.9rem;">Student: Arjun (Candidate for MCA Degree)</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Paper: Adaptive CNN Classification • Time: Tomorrow, 2:00 PM</p>
+                        </div>
+                        <button class="btn btn-cyan btn-sm" style="padding: 4px 10px; font-size: 0.8rem;" onclick="alert('Loading Viva Grading portal...')">Join & Grade</button>
+                    </div>
+                `;
+                break;
+                
+            case 'coordinator':
+                headerTitle.innerText = "Journal Coordinator Desk: Publication indexing parameters.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Active Journals & Indexing CFPs</h4>
+                    <div class="analytics-grid">
+                        <div class="glass-panel" style="padding: 1rem; text-align: left; background: rgba(0,0,0,0.15);">
+                            <strong style="color: var(--secondary);">Journal of Neuroinformatics</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Indexing: Scopus (Q1), Web of Science<br>Impact Factor: 4.8</p>
+                        </div>
+                        <div class="glass-panel" style="padding: 1rem; text-align: left; background: rgba(0,0,0,0.15);">
+                            <strong style="color: var(--secondary);">IEEE Applied AI Letters</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Indexing: Scopus, DBLP<br>Impact Factor: 3.2</p>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'dept_head':
+                headerTitle.innerText = "Department Head Desk: Budget grants approvals and scholar configurations.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Ethical & Funding Clearances</h4>
+                    <div class="match-card">
+                        <div>
+                            <strong style="color: white; font-size: 0.9rem;">Scholarship Travel Grant: Arjun (IIT Madras)</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Amount: ₹45,000 • Conference: International Congress on Neurographics</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-cyan btn-sm" style="padding: 4px 8px; font-size: 0.8rem;" onclick="alert('Grant request Approved.')">Approve</button>
+                            <button class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 0.8rem;" onclick="alert('Grant request rejected.')">Reject</button>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'external':
+                headerTitle.innerText = "External Researcher: Public profiles query interface.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">Institutional Access Board</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Query database records for specific publications indexed across this university.</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" class="form-input" placeholder="Enter keywords (e.g. Brain Tumor segmentation)..." style="flex-grow: 1;">
+                        <button class="btn btn-primary btn-sm" style="padding: 0 1rem;" onclick="alert('Searching repository records...')">Search</button>
+                    </div>
+                `;
+                break;
+                
+            case 'admin':
+                headerTitle.innerText = "Institutional Administration: Platform diagnostic system parameters.";
+                container.innerHTML = `
+                    <h4 style="color: white; font-size: 1.1rem; margin-bottom: 0.75rem;">System Connectivity Diagnostics</h4>
+                    <div class="analytics-grid">
+                        <div class="glass-panel" style="padding: 1rem; text-align: left; background: rgba(0,0,0,0.15);">
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                                <span>MySQL Database</span>
+                                <span style="color: var(--success);">ONLINE</span>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Host: 127.0.0.1:3306 • Connections: 24 active</p>
+                        </div>
+                        <div class="glass-panel" style="padding: 1rem; text-align: left; background: rgba(0,0,0,0.15);">
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                                <span>Neo4j Graph Server</span>
+                                <span style="color: var(--success);">CONNECTED</span>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">URI: bolt://localhost:7687 • Nodes count: 4,102</p>
+                        </div>
+                    </div>
+                `;
+                break;
+        }
+    }
+</script>
+{% endblock %}
