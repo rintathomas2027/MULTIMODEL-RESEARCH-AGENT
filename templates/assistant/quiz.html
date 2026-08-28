@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz: {{ document.title }} | AI Study Assistant{% endblock %}
+
+{% block content %}
+<main class="study-body">
+    
+    <div class="quiz-wrapper">
+        
+        <!-- Document Title & Category Backlink -->
+        <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.8rem; background: linear-gradient(135deg, #ffffff, var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Self-Assessment Quiz
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">
+                    Test your understanding of: <strong>{{ document.title }}</strong>
+                </p>
+            </div>
+            <a href="{% url 'document_detail' document.id %}" class="btn btn-secondary btn-sm">
+                Back to Document Workspace
+            </a>
+        </div>
+
+        {% if score is not None %}
+            
+            <!-- Grading Results View -->
+            <div class="glass-panel quiz-score-banner">
+                <h3 style="color: #ffffff;">Your Quiz Results</h3>
+                <div class="score-display">{{ score }} / {{ total }}</div>
+                
+                {% if score == total %}
+                    <p style="color: var(--success); font-weight: 600; font-size: 1.1rem;">🌟 Masterclass! Perfect Score! You understand this material thoroughly.</p>
+                {% elif score >= 3 %}
+                    <p style="color: var(--secondary); font-weight: 600; font-size: 1.1rem;">👍 Great Job! You have a solid grasp on this material.</p>
+                {% else %}
+                    <p style="color: var(--accent); font-weight: 600; font-size: 1.1rem;">📚 Room to grow! We recommend re-reading the summary and chatting with the AI Tutor.</p>
+                {% endif %}
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+                    <a href="{% url 'document_quiz' document.id %}" class="btn btn-primary">
+                        Retake Quiz 🔄
+                    </a>
+                    <a href="{% url 'document_detail' document.id %}" class="btn btn-secondary">
+                        Back to Notes
+                    </a>
+                </div>
+            </div>
+
+            <!-- Detailed Question-by-Question Grading breakdown -->
+            <h3 style="margin-bottom: 1.25rem;">Question Breakdown</h3>
+            {% for item in results %}
+                <div class="glass-panel quiz-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem;">
+                        <span class="quiz-question-num">Question {{ forloop.counter }}</span>
+                        {% if item.is_correct %}
+                            <span class="result-badge badge-correct">Correct ✅</span>
+                        {% else %}
+                            <span class="result-badge badge-incorrect">Incorrect ❌</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="quiz-question-text">{{ item.question }}</p>
+                    
+                    <div class="quiz-options">
+                        {% for option in item.options %}
+                            <div class="quiz-option-label 
+                                {% if option == item.correct %}
+                                    quiz-option-correct
+                                {% elif option == item.selected and not item.is_correct %}
+                                    quiz-option-incorrect
+                                {% endif %}">
+                                <span style="font-weight: 600; margin-right: 10px;">
+                                    {% if option == item.correct %}
+                                        ✓ 
+                                    {% elif option == item.selected and not item.is_correct %}
+                                        ✗
+                                    {% else %}
+                                        •
+                                    {% endif %}
+                                </span>
+                                <span>{{ option }}</span>
+                                
+                                {% if option == item.correct %}
+                                    <span style="font-size: 0.75rem; font-weight: 600; color: #10b981; margin-left: auto; text-transform: uppercase;">Correct Answer</span>
+                                {% elif option == item.selected %}
+                                    <span style="font-size: 0.75rem; font-weight: 600; color: #ef4444; margin-left: auto; text-transform: uppercase;">Your Selection</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% else %}
+
+            <!-- Quiz Questions Form -->
+            <div class="glass-panel quiz-intro">
+                <p>
+                    We have generated a custom AI multiple-choice quiz based on the key facts, theories, and details inside this document. 
+                    Submit your answers when you are ready to view your score and detailed explanations. Good luck!
+                </p>
+            </div>
+
+            <form action="{% url 'document_quiz' document.id %}" method="POST">
+                {% csrf_token %}
+                
+                {% for q in quiz.questions %}
+                    <div class="glass-panel quiz-card">
+                        <span class="quiz-question-num">Question {{ forloop.counter }}</span>
+                        <p class="quiz-question-text">{{ q.question }}</p>
+                        
+                        <div class="quiz-options">
+                            {% for option in q.options %}
+                                <label class="quiz-option-label" for="q_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+                                    <input type="radio" 
+                                           name="question_{{ forloop.parentloop.counter0 }}" 
+                                           id="q_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" 
+                                           value="{{ option }}" 
+                                           class="quiz-option-input"
+                                           required>
+                                    <span>{{ option }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem; font-size: 1.1rem; box-shadow: 0 10px 25px -5px var(--primary-glow);">
+                    Submit Quiz Answers 🎓🚀
+                </button>
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</main>
+{% endblock %}
