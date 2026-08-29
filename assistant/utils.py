@@ -5,13 +5,18 @@ import PyPDF2
 import google.generativeai as genai
 from django.conf import settings
 
-# Configure Gemini API
 def get_gemini_model():
     api_key = os.getenv('GEMINI_API_KEY')
     if not api_key or api_key == 'your_gemini_api_key_here':
         return None
     genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-2.5-flash')
+    candidate_models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro']
+    for m in candidate_models:
+        try:
+            return genai.GenerativeModel(m)
+        except Exception:
+            continue
+    return genai.GenerativeModel('gemini-1.5-flash')
 
 # Configure OpenAI API
 def get_openai_client():

@@ -8,8 +8,11 @@ echo ========================================================
 cd /d C:\AIStudyAssistant
 
 echo.
-echo Running Python 74-Commit Builder...
-python build_74_commits.py
+if exist "venv\Scripts\python.exe" (
+    "venv\Scripts\python.exe" build_74_commits.py
+) else (
+    python build_74_commits.py
+)
 
 echo.
 echo ========================================================

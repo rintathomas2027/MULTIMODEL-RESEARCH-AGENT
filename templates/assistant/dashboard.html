@@ -127,7 +127,15 @@
                     <!-- Option B: Paste Notes -->
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label for="notes_text" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option B: Paste Study Notes Text</label>
-                        <textarea name="notes_text" id="notes_text" rows="6" class="form-input" placeholder="Paste your study notes, definitions, or code snippets directly here if you don't have a PDF file..."></textarea>
+                        <textarea name="notes_text" id="notes_text" rows="4" class="form-input" placeholder="Paste your study notes, definitions, or code snippets directly here if you don't have a PDF file..."></textarea>
+                    </div>
+
+                    <div class="upload-option-divider">OR</div>
+
+                    <!-- Option C: Ingest via Web or PDF URL -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="url_input" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option C: Ingest via Web Article or PDF Link</label>
+                        <input type="url" name="url_input" id="url_input" class="form-input" placeholder="https://arxiv.org/pdf/2303.08774.pdf or https://example.com/research-article">
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -220,7 +228,7 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 0.9rem; color: var(--text-muted);">Model Running</span>
-                    <span style="font-size: 0.9rem; font-weight: 700; color: var(--secondary);">Gemini 2.5 Flash</span>
+                    <span style="font-size: 0.9rem; font-weight: 700; color: var(--secondary);">Gemini 1.5 Flash</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 0.9rem; color: var(--text-muted);">DB Engine</span>

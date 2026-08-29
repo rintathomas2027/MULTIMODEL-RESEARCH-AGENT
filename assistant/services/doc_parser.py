@@ -113,3 +113,106 @@ Provide a comprehensive extraction in the following format:
         print(f"Error in extract_multimodal_image_insights: {e}")
         return f"[Image Document: {os.path.basename(image_path)}]\nError analyzing visual contents: {str(e)}"
 
+def fetch_and_parse_url(url, custom_title=None):
+    """
+    Downloads content from a PDF or web page URL and extracts text.
+    Returns dict with title, filename, extracted_text, file_bytes, extension.
+    """
+    import tempfile
+    import urllib.parse
+    import requests
+
+    url = url.strip()
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ScholarPulse-AI/1.0 (Academic Research Assistant)'
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=20, stream=True)
+        response.raise_for_status()
+
+        content_type = response.headers.get('Content-Type', '').lower()
+        parsed_url = urllib.parse.urlparse(url)
+        url_filename = os.path.basename(parsed_url.path) or 'web_document'
+
+        # Check if URL or Content-Type is PDF
+        if 'application/pdf' in content_type or url.lower().endswith('.pdf'):
+            ext = '.pdf'
+            filename = url_filename if url_filename.endswith('.pdf') else f"{url_filename}.pdf"
+            pdf_bytes = response.content
+
+            # Save temporarily to parse PDF
+            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                tmp.write(pdf_bytes)
+                tmp_path = tmp.name
+
+            try:
+                extracted_text = extract_text_from_file(tmp_path, 'pdf')
+            finally:
+                if os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except Exception:
+                        pass
+
+            derived_title = custom_title or os.path.splitext(filename)[0].replace('_', ' ').replace('-', ' ').title()
+            return {
+                'title': derived_title,
+                'filename': filename,
+                'extracted_text': extracted_text,
+                'file_bytes': pdf_bytes,
+                'extension': '.pdf'
+            }
+
+        else:
+            # HTML Webpage Parsing
+            html_content = response.text
+            extracted_title = ""
+            main_text = ""
+
+            try:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(html_content, 'html.parser')
+
+                # Extract title
+                title_tag = soup.find('title')
+                if title_tag and title_tag.string:
+                    extracted_title = title_tag.string.strip()
+
+                # Remove script, style, nav, footer, header elements
+                for element in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
+                    element.decompose()
+
+                lines = []
+                for elem in soup.find_all(['h1', 'h2', 'h3', 'h4', 'p', 'li']):
+                    txt = elem.get_text().strip()
+                    if txt:
+                        lines.append(txt)
+
+                main_text = "\n\n".join(lines)
+            except Exception:
+                import re
+                clean_html = re.sub(r'<script.*?>.*?</script>', '', html_content, flags=re.DOTALL)
+                clean_html = re.sub(r'<style.*?>.*?</style>', '', clean_html, flags=re.DOTALL)
+                clean_html = re.sub(r'<.*?>', ' ', clean_html)
+                main_text = "\n".join([line.strip() for line in clean_html.splitlines() if line.strip()])
+
+            derived_title = custom_title or extracted_title or parsed_url.netloc or "Web Article Document"
+            filename = f"web_{parsed_url.netloc.replace('.', '_')}.txt"
+            file_bytes = main_text.encode('utf-8')
+
+            return {
+                'title': derived_title,
+                'filename': filename,
+                'extracted_text': clean_text(main_text),
+                'file_bytes': file_bytes,
+                'extension': '.txt'
+            }
+
+    except Exception as e:
+        raise ValueError(f"Failed to fetch content from URL '{url}': {str(e)}")
+
+

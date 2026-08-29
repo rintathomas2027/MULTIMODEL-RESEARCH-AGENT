@@ -8,13 +8,10 @@ echo ========================================================
 cd /d C:\AIStudyAssistant
 
 echo.
-echo Running Python commit builder script...
-python build_74_commits.py
-
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo Python runner encountered an issue. Falling back to batch runner...
-    python -c "import build_74_commits; build_74_commits.main()"
+if exist "venv\Scripts\python.exe" (
+    "venv\Scripts\python.exe" build_74_commits.py
+) else (
+    python build_74_commits.py
 )
 
 echo.

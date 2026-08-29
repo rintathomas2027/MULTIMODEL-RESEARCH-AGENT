@@ -2899,19 +2899,27 @@ ${doi ? `DO  - ${doi}\n` : ''}ER  -`;
     // UPLOAD MODAL
     // ==========================================
     function UploadModal({ onClose, onSuccess }) {
+      const [uploadType, setUploadType] = useState('file'); // 'file' or 'url'
       const [file, setFile] = useState(null);
+      const [urlInput, setUrlInput] = useState('');
       const [title, setTitle] = useState('');
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState('');
 
       const handleUpload = async (e) => {
         e.preventDefault();
-        if (!file) return;
+        if (uploadType === 'file' && !file) return;
+        if (uploadType === 'url' && !urlInput.trim()) return;
+
         setLoading(true);
         setError('');
 
         const formData = new FormData();
-        formData.append('file', file);
+        if (uploadType === 'file') {
+          formData.append('file', file);
+        } else {
+          formData.append('url_input', urlInput.trim());
+        }
         if (title.trim()) formData.append('title', title.trim());
 
         try {
@@ -2931,32 +2939,66 @@ ${doi ? `DO  - ${doi}\n` : ''}ER  -`;
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="glass-card max-w-md w-full p-6 border-gold-400 bg-obsidian-950 space-y-5 shadow-2xl">
             <div className="flex justify-between items-center border-b border-gold-500/20 pb-3">
-              <h3 className="font-extrabold text-base">Upload Document, Paper or Diagram</h3>
+              <h3 className="font-extrabold text-base">Ingest Document, Paper or Web Link</h3>
               <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            {/* TAB SELECTOR */}
+            <div className="flex gap-2 p-1 rounded-xl bg-obsidian-900 border border-gold-500/20 text-xs">
+              <button 
+                type="button" 
+                onClick={() => setUploadType('file')}
+                className={`flex-1 py-1.5 rounded-lg font-bold transition-all ${uploadType === 'file' ? 'bg-gold-500 text-obsidian-950 shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                📁 Local File Upload
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setUploadType('url')}
+                className={`flex-1 py-1.5 rounded-lg font-bold transition-all ${uploadType === 'url' ? 'bg-gold-500 text-obsidian-950 shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                🌐 Web / PDF Link
+              </button>
             </div>
 
             {error && <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">{error}</div>}
 
             <form onSubmit={handleUpload} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Select File (PDF, DOCX, PPTX, TXT, or PNG/JPG Diagram)</label>
-                <input 
-                  type="file" 
-                  required
-                  accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp"
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1"
-                  onChange={(e) => {
-                    const f = e.target.files[0];
-                    setFile(f);
-                    if (f && !title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
-                  }}
-                />
-              </div>
+              {uploadType === 'file' ? (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Select File (PDF, DOCX, PPTX, TXT, or Image)</label>
+                  <input 
+                    type="file" 
+                    required
+                    accept=".pdf,.docx,.pptx,.txt,.png,.jpg,.jpeg,.webp"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1"
+                    onChange={(e) => {
+                      const f = e.target.files[0];
+                      setFile(f);
+                      if (f && !title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+                    }}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Paste Web Page or Direct PDF Link</label>
+                  <input 
+                    type="url" 
+                    required
+                    placeholder="https://arxiv.org/pdf/2303.08774.pdf or https://example.com/article"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Fetches full text or PDF bytes directly and indexes into vector memory.</p>
+                </div>
+              )}
 
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Document Title (Optional)</label>
                 <input 
                   type="text" 
+                  placeholder="Custom title for vector index"
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-obsidian-900 border border-gold-500/30 text-white mt-1 focus:outline-none focus:border-gold-400"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -2965,8 +3007,8 @@ ${doi ? `DO  - ${doi}\n` : ''}ER  -`;
 
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-obsidian-800 text-xs text-slate-300">Cancel</button>
-                <button type="submit" disabled={loading || !file} className="btn-gold text-xs px-5">
-                  {loading ? 'Parsing & Indexing Vectors...' : 'Upload & Vectorize →'}
+                <button type="submit" disabled={loading || (uploadType === 'file' ? !file : !urlInput.trim())} className="btn-gold text-xs px-5">
+                  {loading ? 'Fetching & Indexing Vectors...' : (uploadType === 'file' ? 'Upload & Vectorize →' : 'Fetch URL & Vectorize →')}
                 </button>
               </div>
             </form>

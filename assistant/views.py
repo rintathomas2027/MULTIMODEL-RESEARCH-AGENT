@@ -12,7 +12,7 @@ import json
 
 from .models import Document, ChatHistory
 from .serializers import DocumentSerializer, ChatHistorySerializer
-from .services.doc_parser import extract_text_from_file
+from .services.doc_parser import extract_text_from_file, fetch_and_parse_url
 from .services.chunker import chunk_text
 from .services.vector_store import store_document_chunks, delete_document_chunks
 from .services.rag_engine import (
@@ -64,33 +64,52 @@ class DocumentListCreateView(APIView):
     def post(self, request):
         user = get_active_user(request)
         file_obj = request.FILES.get('file')
-        title = request.data.get('title')
+        url_input = (request.data.get('url') or request.data.get('url_input') or '').strip()
+        title = (request.data.get('title') or '').strip()
 
-        if not file_obj:
-            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+        if not file_obj and not url_input:
+            return Response({'error': 'Please provide a file or a valid web/PDF URL'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not title:
-            title = file_obj.name
+        doc = None
+        if url_input:
+            try:
+                parsed_res = fetch_and_parse_url(url_input, custom_title=title)
+                final_title = title or parsed_res['title']
+                filename = parsed_res['filename']
+                content_file = ContentFile(parsed_res['file_bytes'], name=filename)
 
-        doc = Document.objects.create(
-            user=user,
-            title=title,
-            file=file_obj
-        )
+                doc = Document.objects.create(
+                    user=user,
+                    title=final_title,
+                    file=content_file,
+                    extracted_text=parsed_res['extracted_text']
+                )
+                chunks = chunk_text(parsed_res['extracted_text'])
+                store_document_chunks(doc.id, chunks)
 
-        # Process document text extraction and chunking
-        try:
-            ext = os.path.splitext(file_obj.name)[1].lower()
-            text = extract_text_from_file(doc.file.path, ext)
-            doc.extracted_text = text
-            doc.save()
+            except Exception as e:
+                return Response({'error': f'URL Ingestion Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Chunk & store vectors
-            chunks = chunk_text(text)
-            store_document_chunks(doc.id, chunks)
+        elif file_obj:
+            if not title:
+                title = file_obj.name
 
-        except Exception as e:
-            print(f"Error processing doc {doc.id}: {e}")
+            doc = Document.objects.create(
+                user=user,
+                title=title,
+                file=file_obj
+            )
+
+            try:
+                ext = os.path.splitext(file_obj.name)[1].lower()
+                text = extract_text_from_file(doc.file.path, ext)
+                doc.extracted_text = text
+                doc.save()
+
+                chunks = chunk_text(text)
+                store_document_chunks(doc.id, chunks)
+            except Exception as e:
+                print(f"Error processing uploaded file {doc.id}: {e}")
 
         serializer = DocumentSerializer(doc)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

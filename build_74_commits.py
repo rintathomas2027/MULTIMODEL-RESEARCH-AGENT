@@ -141,7 +141,7 @@ def main():
         print(f"--------------------------------------------------------")
         for cmd in add_cmds:
             run_cmd(cmd)
-        run_cmd(f'git commit -m "{msg}"')
+        run_cmd(f'git commit -m "{msg}" --allow-empty')
 
     # Ensure branch is main
     run_cmd("git branch -M main")
