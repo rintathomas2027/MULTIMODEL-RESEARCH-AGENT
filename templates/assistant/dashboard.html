@@ -101,7 +101,7 @@
 
             <!-- Tab 1: Documents & Plain Text -->
             <div id="upload-doc-tab">
-                <form action="{% url 'upload_document' %}" method="POST" enctype="multipart/form-data">
+                <form action="{% url 'upload_document' %}" method="POST" enctype="multipart/form-data" id="doc-upload-form" novalidate>
                     {% csrf_token %}
                     
                     <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -111,14 +111,14 @@
 
                     <!-- Tabbed Option 1: File Upload -->
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option A: Upload PDF Note</label>
-                        <div class="file-drop-zone" onclick="document.getElementById('file-input').click()">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Option A: Upload PDF / Notes Document</label>
+                        <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('file-input').click()">
                             <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto 0.5rem auto;">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                             </svg>
                             <span id="file-label" style="font-weight: 600; color: #ffffff;">Drag & Drop or Click to browse</span>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Supports PDF or TXT up to 10MB</p>
-                            <input type="file" name="file" id="file-input" class="file-input-hidden" accept=".pdf,.txt" onchange="updateFileLabel()">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Supports PDF, TXT, DOCX, PPTX (Max 15MB)</p>
+                            <input type="file" name="file" id="file-input" class="file-input-hidden" accept=".pdf,.txt,.docx,.doc,.pptx,.ppt,.md,.png,.jpg,.jpeg,.webp" onchange="updateFileLabel()">
                         </div>
                     </div>
 
@@ -138,7 +138,7 @@
                         <input type="url" name="url_input" id="url_input" class="form-input" placeholder="https://arxiv.org/pdf/2303.08774.pdf or https://example.com/research-article">
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <button type="submit" class="btn btn-primary" id="doc-submit-btn" style="width: 100%;">
                         Analyze with AI 🧠⚡
                     </button>
                 </form>
@@ -281,8 +281,30 @@
         const input = document.getElementById('file-input');
         const label = document.getElementById('file-label');
         if (input.files.length > 0) {
-            label.innerText = `Selected file: ${input.files[0].name}`;
+            const selectedFile = input.files[0];
+            const valRes = ScholarValidator.validateFile(selectedFile, {
+                maxSizeBytes: 15 * 1024 * 1024,
+                allowedExtensions: ['pdf', 'txt', 'docx', 'doc', 'pptx', 'ppt', 'md', 'png', 'jpg', 'jpeg', 'webp']
+            });
+
+            if (!valRes.isValid) {
+                ScholarValidator.showToast(valRes.message, 'error');
+                label.innerText = `❌ Invalid file: ${selectedFile.name}`;
+                label.style.color = 'var(--error)';
+                input.value = ''; // Reset invalid file
+                return;
+            }
+
+            label.innerText = `Selected file: ${selectedFile.name} (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)`;
             label.style.color = 'var(--secondary)';
+
+            // Auto-populate Title if empty
+            const titleInput = document.getElementById('title');
+            if (titleInput && !titleInput.value.trim()) {
+                const cleanName = selectedFile.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+                titleInput.value = cleanName;
+                ScholarValidator.clearFieldError(titleInput);
+            }
         } else {
             label.innerText = 'Drag & Drop or Click to browse';
             label.style.color = '#ffffff';
@@ -336,12 +358,27 @@
         const input = document.getElementById('audio-file-input');
         const label = document.getElementById('audio-file-label');
         if (input.files.length > 0) {
-            label.innerText = `Selected audio: ${input.files[0].name}`;
+            const selectedAudio = input.files[0];
+            const valRes = ScholarValidator.validateFile(selectedAudio, {
+                maxSizeBytes: 25 * 1024 * 1024,
+                allowedExtensions: ['mp3', 'wav', 'm4a', 'webm', 'ogg', 'aac', 'flac']
+            });
+
+            if (!valRes.isValid) {
+                ScholarValidator.showToast(valRes.message, 'error');
+                label.innerText = `❌ Invalid audio: ${selectedAudio.name}`;
+                label.style.color = 'var(--error)';
+                input.value = '';
+                return;
+            }
+
+            label.innerText = `Selected audio: ${selectedAudio.name} (${(selectedAudio.size / (1024 * 1024)).toFixed(2)} MB)`;
             label.style.color = 'var(--secondary)';
             const titleInput = document.getElementById('voice_title');
-            if (!titleInput.value) {
-                const name = input.files[0].name.replace(/\.[^/.]+$/, "");
+            if (titleInput && !titleInput.value) {
+                const name = selectedAudio.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
                 titleInput.value = name;
+                ScholarValidator.clearFieldError(titleInput);
             }
         } else {
             label.innerText = 'Click to select audio (WAV, MP3, M4A, WEBM)';
@@ -381,7 +418,7 @@
         recognition.onerror = function(event) {
             console.error('Speech recognition error:', event.error);
             if (event.error === 'not-allowed') {
-                alert('Microphone access was denied. Please check your browser permissions.');
+                ScholarValidator.showToast('Microphone access was denied. Please check permissions.', 'error');
             }
             stopSpeechRecognition();
         };
@@ -399,7 +436,7 @@
 
     function toggleRecording() {
         if (!recognition) {
-            alert("Your browser does not support the Web Speech API for real-time dictation. Please use the 'Upload Audio File' option to upload voice recordings directly!");
+            ScholarValidator.showToast("Your browser does not support Web Speech API. Please use 'Upload Audio File'.", 'warning');
             return;
         }
 
@@ -488,11 +525,125 @@
         }
     }
 
-    // Set voice submit button loading state
-    document.getElementById('voice-note-form').addEventListener('submit', function() {
-        const submitBtn = document.getElementById('voice-submit-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Transcribing and Analyzing with AI... 🧠⚡';
-    });
+    // ==========================================
+    // DOCUMENT FORM CLIENT-SIDE VALIDATION
+    // ==========================================
+    const docForm = document.getElementById('doc-upload-form');
+    if (docForm) {
+        const titleInput = document.getElementById('title');
+        const fileInput = document.getElementById('file-input');
+        const notesText = document.getElementById('notes_text');
+        const urlInput = document.getElementById('url_input');
+        const submitBtn = document.getElementById('doc-submit-btn');
+
+        titleInput.addEventListener('input', () => ScholarValidator.clearFieldError(titleInput));
+        notesText.addEventListener('input', () => ScholarValidator.clearFieldError(notesText));
+        urlInput.addEventListener('input', () => ScholarValidator.clearFieldError(urlInput));
+
+        docForm.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // 1. Title is required
+            const titleVal = titleInput.value.trim();
+            if (!titleVal) {
+                ScholarValidator.showFieldError(titleInput, 'Document title is required.');
+                isValid = false;
+            }
+
+            // 2. Validate content source (File, Notes, or URL)
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+            const hasNotes = notesText.value.trim().length > 0;
+            const hasUrl = urlInput.value.trim().length > 0;
+
+            if (!hasFile && !hasNotes && !hasUrl) {
+                ScholarValidator.showFieldError(notesText, 'Please upload a file, paste study notes, or provide a web URL.');
+                ScholarValidator.showToast('Please provide a document file, paste text, or enter a URL.', 'warning');
+                isValid = false;
+            }
+
+            // 3. If file provided, check validity
+            if (hasFile) {
+                const fileRes = ScholarValidator.validateFile(fileInput.files[0], {
+                    maxSizeBytes: 15 * 1024 * 1024,
+                    allowedExtensions: ['pdf', 'txt', 'docx', 'doc', 'pptx', 'ppt', 'md', 'png', 'jpg', 'jpeg', 'webp']
+                });
+                if (!fileRes.isValid) {
+                    ScholarValidator.showToast(fileRes.message, 'error');
+                    isValid = false;
+                }
+            }
+
+            // 4. If URL provided, check format
+            if (hasUrl) {
+                const urlRes = ScholarValidator.validateUrl(urlInput.value.trim());
+                if (!urlRes.isValid) {
+                    ScholarValidator.showFieldError(urlInput, urlRes.message);
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                ScholarValidator.shakeElement(docForm);
+                return false;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Analyzing & Generating Study Intelligence... 🧠⚡';
+        });
+    }
+
+    // ==========================================
+    // VOICE NOTE FORM CLIENT-SIDE VALIDATION
+    // ==========================================
+    const voiceForm = document.getElementById('voice-note-form');
+    if (voiceForm) {
+        const voiceTitle = document.getElementById('voice_title');
+        const transText = document.getElementById('transcribed_text');
+        const audioInput = document.getElementById('audio-file-input');
+        const voiceSubmitBtn = document.getElementById('voice-submit-btn');
+
+        voiceTitle.addEventListener('input', () => ScholarValidator.clearFieldError(voiceTitle));
+        transText.addEventListener('input', () => ScholarValidator.clearFieldError(transText));
+
+        voiceForm.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            const titleVal = voiceTitle.value.trim();
+            if (!titleVal) {
+                ScholarValidator.showFieldError(voiceTitle, 'Voice note title is required.');
+                isValid = false;
+            }
+
+            const hasTranscription = transText.value.trim().length >= 5;
+            const hasAudioFile = audioInput.files && audioInput.files.length > 0;
+
+            if (!hasTranscription && !hasAudioFile) {
+                ScholarValidator.showFieldError(transText, 'Please dictate speech or upload an audio recording file.');
+                ScholarValidator.showToast('Please record audio or upload an audio file.', 'warning');
+                isValid = false;
+            }
+
+            if (hasAudioFile) {
+                const audioRes = ScholarValidator.validateFile(audioInput.files[0], {
+                    maxSizeBytes: 25 * 1024 * 1024,
+                    allowedExtensions: ['mp3', 'wav', 'm4a', 'webm', 'ogg', 'aac', 'flac']
+                });
+                if (!audioRes.isValid) {
+                    ScholarValidator.showToast(audioRes.message, 'error');
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                ScholarValidator.shakeElement(voiceForm);
+                return false;
+            }
+
+            voiceSubmitBtn.disabled = true;
+            voiceSubmitBtn.innerText = 'Transcribing and Analyzing with AI... 🧠⚡';
+        });
+    }
 </script>
 {% endblock %}

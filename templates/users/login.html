@@ -10,20 +10,22 @@
             <p>Log in to access your AI-powered study materials</p>
         </div>
         
-        <form action="{% url 'login' %}" method="POST" class="auth-form">
+        <form action="{% url 'login' %}" method="POST" class="auth-form" id="login-form" novalidate>
             {% csrf_token %}
             
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" name="username" id="username" class="form-input" placeholder="Enter your username" required autocomplete="username">
+                <input type="text" name="username" id="username" class="form-input" placeholder="Enter your username" autocomplete="username" required>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                <div class="password-toggle-wrapper">
+                    <input type="password" name="password" id="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
             </div>
             
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width: 100%; margin-top: 1rem;">
                 Sign In 🚀
             </button>
         </form>
@@ -34,3 +36,63 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('login-form');
+    const userInput = document.getElementById('username');
+    const passInput = document.getElementById('password');
+    const submitBtn = document.getElementById('login-submit-btn');
+
+    if (!form || !userInput || !passInput) return;
+
+    // Real-time username validation
+    userInput.addEventListener('input', function() {
+        ScholarValidator.clearFieldError(userInput);
+    });
+
+    userInput.addEventListener('blur', function() {
+        const res = ScholarValidator.validateUsername(userInput.value);
+        if (!res.isValid) {
+            ScholarValidator.showFieldError(userInput, res.message);
+        } else {
+            ScholarValidator.showFieldSuccess(userInput);
+        }
+    });
+
+    // Real-time password validation
+    passInput.addEventListener('input', function() {
+        ScholarValidator.clearFieldError(passInput);
+    });
+
+    // Intercept form submission
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        const userRes = ScholarValidator.validateUsername(userInput.value);
+        if (!userRes.isValid) {
+            ScholarValidator.showFieldError(userInput, userRes.message);
+            isValid = false;
+        }
+
+        const passRes = ScholarValidator.validateRequired(passInput.value, 'Password');
+        if (!passRes.isValid) {
+            ScholarValidator.showFieldError(passInput, passRes.message);
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            ScholarValidator.shakeElement(form);
+            ScholarValidator.showToast('Please fill in your valid credentials.', 'error');
+            return false;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Signing In... ⚡';
+    });
+});
+</script>
+{% endblock %}
+

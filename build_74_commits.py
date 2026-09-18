@@ -120,17 +120,45 @@ def main():
         (["git add frontend/src/components/FormulaTab.jsx"], "feat(frontend): add FormulaTab math synthesizer component"),
         (["git add frontend/src/App.jsx"], "feat(frontend): assemble App.jsx main state and tab controller"),
 
-        # Evaluation & Utilities (66-76)
-        (["git add panel_evaluation_report.md 2>nul"], "docs: add comprehensive Panel Evaluation Report"),
-        (["git add Start_ScholarPulse.bat"], "chore(scripts): add Start_ScholarPulse.bat launcher script"),
-        (["git add test.txt"], "chore(scripts): add test workspace file"),
-        (["git add push.bat"], "chore(scripts): add push.bat script"),
-        (["git add push_recommit_all.bat"], "chore(scripts): add push_recommit_all.bat script"),
-        (["git add build_74_commits.py"], "chore(scripts): add build_74_commits.py automated commit generator"),
-        (["git add RUN_THIS_PUSH.bat"], "chore(scripts): add RUN_THIS_PUSH.bat one-click runner script"),
-        (["git add README.md"], "docs: update project documentation and installation instructions"),
-        (["git add .env.example"], "chore(config): update environment configuration variables"),
-        (["git add ."], "chore(final): finalize repository state with 76 distinct commits")
+        # Selenium Testing Automation Framework (66-78)
+        (["git add selenium_tests/__init__.py selenium_tests/config.py"], "test(selenium): initialize Selenium automation framework and test runner config"),
+        (["git add selenium_tests/driver_factory.py"], "test(selenium): add multi-browser WebDriver factory for Chrome, Edge, and Firefox"),
+        (["git add selenium_tests/pages/__init__.py selenium_tests/pages/base_page.py"], "test(pom): implement BasePage with explicit waits, safe clicks, and screenshot capture"),
+        (["git add selenium_tests/pages/workspace_page.py"], "test(pom): add WorkspacePage Page Object Model for navigation, theme toggle, and library"),
+        (["git add selenium_tests/pages/auth_modal_page.py"], "test(pom): add AuthModalPage for registration, login, validations, and 1-click guest access"),
+        (["git add selenium_tests/pages/upload_modal_page.py"], "test(pom): add UploadModalPage for multi-format document uploads and web URL ingestion"),
+        (["git add selenium_tests/pages/external_resolver_page.py"], "test(pom): add ExternalResolverPage for 1-click DOI and arXiv paper ingestion"),
+        (["git add selenium_tests/pages/command_hub_page.py"], "test(pom): add CommandHubPage for Ctrl+K spotlight command palette navigation"),
+        (["git add selenium_tests/pages/research_tabs_page.py"], "test(pom): implement Page Object Models for all 14 research tabs and interactive modals"),
+
+        # Selenium Automated Test Suites (79-89)
+        (["git add selenium_tests/test_suites/__init__.py selenium_tests/test_suites/test_suite_01_smoke_and_layout.py"], "test(e2e): add TestSuite 01 for Smoke Testing, Page Load, and Theme Switching"),
+        (["git add selenium_tests/test_suites/test_suite_02_auth_and_user.py"], "test(e2e): add TestSuite 02 for Auth Modal, Form Validations, and 1-Click Guest Access"),
+        (["git add selenium_tests/test_suites/test_suite_03_document_ingestion.py"], "test(e2e): add TestSuite 03 for File Uploads, URL Parsing, and DOI/ArXiv Resolver"),
+        (["git add selenium_tests/test_suites/test_suite_04_rag_copilot.py"], "test(e2e): add TestSuite 04 for Semantic RAG Copilot Chat, Vector Context, and Summarizer"),
+        (["git add selenium_tests/test_suites/test_suite_05_citations_and_references.py"], "test(e2e): add TestSuite 05 for Mendeley & Zotero 7-Format Citation Hub and Exports"),
+        (["git add selenium_tests/test_suites/test_suite_06_scholarcast_podcast.py"], "test(e2e): add TestSuite 06 for ScholarCast Dual-Host Podcast, Speech Playback, and Waveforms"),
+        (["git add selenium_tests/test_suites/test_suite_07_reviewer2_rigor_audit.py"], "test(e2e): add TestSuite 07 for Reviewer #2 Critical Rigor Score Gauge and Fatal Flaws Audit"),
+        (["git add selenium_tests/test_suites/test_suite_08_formula_to_code.py"], "test(e2e): add TestSuite 08 for Multimodal Math Formula to PyTorch/Python Code Synthesizer"),
+        (["git add selenium_tests/test_suites/test_suite_09_explain_presentation_viva.py"], "test(e2e): add TestSuite 09 for 4-Level Explainer, Presentation Deck, and Viva Defense Prep"),
+        (["git add selenium_tests/test_suites/test_suite_10_cross_paper_matrix.py"], "test(e2e): add TestSuite 10 for Cross-Paper Comparative Synthesis Matrix and CSV Export"),
+        (["git add selenium_tests/test_suites/test_suite_11_command_hub_and_analytics.py"], "test(e2e): add TestSuite 11 for Ctrl+K Spotlight Hub, Gamified XP Tracking, and Feedback"),
+        (["git add run_selenium_tests.py"], "test(runner): implement automated Selenium test runner with HTML, JSON, and MD report generators"),
+
+        # Formal Quality Assurance & Software Testing Reports (90-92)
+        (["git add TESTING_REPORT.md"], "docs(qa): add comprehensive 52-Test-Case Software Testing & SQA Certification Report"),
+        (["git add reports/interactive_test_report.html reports/"], "feat(dashboard): add interactive web-based Quality Assurance Testing Dashboard with live search and filters"),
+        (["git add seed_demo_data.py"], "feat(seed): add realistic research paper and vector embedding seeding script (Transformer, ResNet, QAOA, DDPM)"),
+
+        # Software Preparation & Deployment Tooling (93-100)
+        (["git add PROJECT_PREPARATION_GUIDE.md"], "docs(prep): add Master Project Preparation, Deployment, Architecture & 20+ Viva Defense Guide"),
+        (["git add setup_environment.bat"], "chore(launchers): add 1-click automated environment setup batch script"),
+        (["git add run_server.bat"], "chore(launchers): add 1-click clean server launcher batch script"),
+        (["git add run_selenium_tests.bat"], "chore(launchers): add 1-click Selenium test execution and report launcher script"),
+        (["git add Start_ScholarPulse.bat"], "chore(scripts): update Start_ScholarPulse.bat launcher script"),
+        (["git add test.txt push.bat push_recommit_all.bat push_to_git.bat RUN_THIS_PUSH.bat"], "chore(scripts): add utility push batch scripts"),
+        (["git add README.md .env.example requirements.txt"], "docs: finalize project documentation, requirements, and environment templates"),
+        (["git add ."], "chore(final): finalize repository state with 100+ distinct professional commits")
     ]
 
     count = 0
@@ -148,9 +176,10 @@ def main():
 
     print("\n========================================================")
     print(f"Successfully created {count} granular commits!")
-    print("Force-pushing ALL 76 commits to GitHub (origin main)...")
+    print(f"Force-pushing ALL {count} commits to GitHub (origin main)...")
     print("========================================================")
     run_cmd("git push -u origin main --force")
 
 if __name__ == "__main__":
     main()
+

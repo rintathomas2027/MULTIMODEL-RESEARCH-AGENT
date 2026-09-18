@@ -50,11 +50,7 @@ class DocumentListCreateView(APIView):
 
     def get(self, request):
         query = request.query_params.get('q', '').strip()
-        user = get_active_user(request)
-        documents = Document.objects.filter(user=user)
-        # If user has no documents yet, return all available library documents for evaluation
-        if not documents.exists():
-            documents = Document.objects.all()
+        documents = Document.objects.all().order_by('-id')
 
         if query:
             documents = documents.filter(Q(title__icontains=query) | Q(extracted_text__icontains=query))

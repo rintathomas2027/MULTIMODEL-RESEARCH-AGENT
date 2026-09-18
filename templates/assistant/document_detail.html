@@ -160,7 +160,17 @@
         const sendBtn = document.getElementById('chat-send-btn');
         const question = inputField.value.trim();
         
-        if (!question) return;
+        if (!question) {
+            ScholarValidator.showToast('Please type a question before sending.', 'warning');
+            ScholarValidator.shakeElement(inputField);
+            inputField.focus();
+            return;
+        }
+
+        if (question.length > 2000) {
+            ScholarValidator.showToast('Question exceeds 2000 characters limit.', 'warning');
+            return;
+        }
 
         // Clear input field and disable button during request
         inputField.value = '';

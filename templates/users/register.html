@@ -10,25 +10,27 @@
             <p>Start summarizing notes & generating quizzes in seconds</p>
         </div>
         
-        <form action="{% url 'register' %}" method="POST" class="auth-form">
+        <form action="{% url 'register' %}" method="POST" class="auth-form" id="register-form" novalidate>
             {% csrf_token %}
             
             {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <input type="{% if 'password' in field.name %}password{% elif 'email' in field.name %}email{% else %}text{% endif %}" 
-                           name="{{ field.name }}" 
-                           id="{{ field.id_for_label }}" 
-                           class="form-input" 
-                           placeholder="Enter {{ field.label|lower }}"
-                           required>
+                    <div {% if 'password' in field.name %}class="password-toggle-wrapper"{% endif %}>
+                        <input type="{% if 'password' in field.name %}password{% elif 'email' in field.name %}email{% else %}text{% endif %}" 
+                               name="{{ field.name }}" 
+                               id="{{ field.id_for_label }}" 
+                               class="form-input" 
+                               placeholder="Enter {{ field.label|lower }}"
+                               required>
+                    </div>
                     {% if field.help_text %}
                         <small style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
             {% endfor %}
             
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary" id="register-submit-btn" style="width: 100%; margin-top: 1rem;">
                 Get Started ⚡
             </button>
         </form>
@@ -39,3 +41,125 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('register-form');
+    if (!form) return;
+
+    const userInput = form.querySelector('input[name="username"]');
+    const emailInput = form.querySelector('input[name="email"]');
+    const pass1Input = form.querySelector('input[name="password1"], input[name="password"]');
+    const pass2Input = form.querySelector('input[name="password2"], input[name="confirm_password"]');
+    const submitBtn = document.getElementById('register-submit-btn');
+
+    // Attach password strength meter to the primary password field
+    if (pass1Input) {
+        ScholarValidator.createPasswordStrengthMeter(pass1Input);
+    }
+
+    // Username validation
+    if (userInput) {
+        userInput.addEventListener('input', () => ScholarValidator.clearFieldError(userInput));
+        userInput.addEventListener('blur', () => {
+            const res = ScholarValidator.validateUsername(userInput.value);
+            if (!res.isValid) {
+                ScholarValidator.showFieldError(userInput, res.message);
+            } else {
+                ScholarValidator.showFieldSuccess(userInput, 'Valid username');
+            }
+        });
+    }
+
+    // Email validation
+    if (emailInput) {
+        emailInput.addEventListener('input', () => ScholarValidator.clearFieldError(emailInput));
+        emailInput.addEventListener('blur', () => {
+            const res = ScholarValidator.validateEmail(emailInput.value, false);
+            if (!res.isValid) {
+                ScholarValidator.showFieldError(emailInput, res.message);
+            } else if (emailInput.value.trim()) {
+                ScholarValidator.showFieldSuccess(emailInput, 'Valid email');
+            }
+        });
+    }
+
+    // Password & Match validation
+    if (pass1Input) {
+        pass1Input.addEventListener('input', () => {
+            ScholarValidator.clearFieldError(pass1Input);
+            if (pass2Input && pass2Input.value) {
+                const matchRes = ScholarValidator.validatePasswordMatch(pass1Input.value, pass2Input.value);
+                if (!matchRes.isValid) {
+                    ScholarValidator.showFieldError(pass2Input, matchRes.message);
+                } else {
+                    ScholarValidator.showFieldSuccess(pass2Input, 'Passwords match');
+                }
+            }
+        });
+    }
+
+    if (pass2Input) {
+        pass2Input.addEventListener('input', () => {
+            if (pass1Input) {
+                const matchRes = ScholarValidator.validatePasswordMatch(pass1Input.value, pass2Input.value);
+                if (!matchRes.isValid) {
+                    ScholarValidator.showFieldError(pass2Input, matchRes.message);
+                } else {
+                    ScholarValidator.showFieldSuccess(pass2Input, 'Passwords match');
+                }
+            }
+        });
+    }
+
+    // Form submission validation interceptor
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        if (userInput) {
+            const userRes = ScholarValidator.validateUsername(userInput.value);
+            if (!userRes.isValid) {
+                ScholarValidator.showFieldError(userInput, userRes.message);
+                isValid = false;
+            }
+        }
+
+        if (emailInput && emailInput.value.trim()) {
+            const emailRes = ScholarValidator.validateEmail(emailInput.value);
+            if (!emailRes.isValid) {
+                ScholarValidator.showFieldError(emailInput, emailRes.message);
+                isValid = false;
+            }
+        }
+
+        if (pass1Input) {
+            const passRes = ScholarValidator.validatePassword(pass1Input.value, 6);
+            if (!passRes.isValid) {
+                ScholarValidator.showFieldError(pass1Input, passRes.message);
+                isValid = false;
+            }
+        }
+
+        if (pass1Input && pass2Input) {
+            const matchRes = ScholarValidator.validatePasswordMatch(pass1Input.value, pass2Input.value);
+            if (!matchRes.isValid) {
+                ScholarValidator.showFieldError(pass2Input, matchRes.message);
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            ScholarValidator.shakeElement(form);
+            ScholarValidator.showToast('Please resolve the form validation errors.', 'error');
+            return false;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Creating Account... ⚡';
+    });
+});
+</script>
+{% endblock %}
+

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import { validateFile } from '../utils/validation';
 
 export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [file, setFile] = useState(null);
@@ -12,9 +13,21 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
+      const valRes = validateFile(selected, {
+        maxSizeBytes: 50 * 1024 * 1024,
+        allowedExtensions: ['pdf', 'docx', 'doc', 'pptx', 'ppt', 'txt', 'md']
+      });
+
+      if (!valRes.isValid) {
+        setError(valRes.message);
+        setFile(null);
+        return;
+      }
+
+      setError('');
       setFile(selected);
       if (!title) {
-        setTitle(selected.name.replace(/\.[^/.]+$/, ''));
+        setTitle(selected.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
       }
     }
   };
@@ -22,7 +35,17 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setError('Please select a PDF, DOCX, PPTX, or TXT file.');
+      setError('Please select a valid PDF, DOCX, PPTX, or TXT file.');
+      return;
+    }
+
+    const valRes = validateFile(file, {
+      maxSizeBytes: 50 * 1024 * 1024,
+      allowedExtensions: ['pdf', 'docx', 'doc', 'pptx', 'ppt', 'txt', 'md']
+    });
+
+    if (!valRes.isValid) {
+      setError(valRes.message);
       return;
     }
 
@@ -30,7 +53,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setLoading(true);
 
     try {
-      const doc = await api.uploadDocument(file, title);
+      const doc = await api.uploadDocument(file, title.trim());
       onUploadSuccess(doc);
       onClose();
       setFile(null);

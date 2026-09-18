@@ -2,22 +2,22 @@ const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 class ApiClient {
   getAccessToken() {
-    return localStorage.getItem('sp_access_token');
+    return sessionStorage.getItem('sp_access_token');
   }
 
   getRefreshToken() {
-    return localStorage.getItem('sp_refresh_token');
+    return sessionStorage.getItem('sp_refresh_token');
   }
 
   setTokens(access, refresh) {
-    if (access) localStorage.setItem('sp_access_token', access);
-    if (refresh) localStorage.setItem('sp_refresh_token', refresh);
+    if (access) sessionStorage.setItem('sp_access_token', access);
+    if (refresh) sessionStorage.setItem('sp_refresh_token', refresh);
   }
 
   clearTokens() {
-    localStorage.removeItem('sp_access_token');
-    localStorage.removeItem('sp_refresh_token');
-    localStorage.removeItem('sp_user');
+    sessionStorage.removeItem('sp_access_token');
+    sessionStorage.removeItem('sp_refresh_token');
+    sessionStorage.removeItem('sp_user');
   }
 
   async request(endpoint, options = {}) {
@@ -102,7 +102,7 @@ class ApiClient {
       noAuth: true,
     });
     this.setTokens(res.tokens.access, res.tokens.refresh);
-    localStorage.setItem('sp_user', JSON.stringify(res.user));
+    sessionStorage.setItem('sp_user', JSON.stringify(res.user));
     return res.user;
   }
 
@@ -113,13 +113,13 @@ class ApiClient {
       noAuth: true,
     });
     this.setTokens(res.tokens.access, res.tokens.refresh);
-    localStorage.setItem('sp_user', JSON.stringify(res.user));
+    sessionStorage.setItem('sp_user', JSON.stringify(res.user));
     return res.user;
   }
 
   async getProfile() {
     const res = await this.request('/auth/profile/');
-    localStorage.setItem('sp_user', JSON.stringify(res));
+    sessionStorage.setItem('sp_user', JSON.stringify(res));
     return res;
   }
 
@@ -128,7 +128,7 @@ class ApiClient {
       method: 'PATCH',
       body: data,
     });
-    localStorage.setItem('sp_user', JSON.stringify(res));
+    sessionStorage.setItem('sp_user', JSON.stringify(res));
     return res;
   }
 

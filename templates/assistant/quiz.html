@@ -102,11 +102,11 @@
                 </p>
             </div>
 
-            <form action="{% url 'document_quiz' document.id %}" method="POST">
+            <form action="{% url 'document_quiz' document.id %}" method="POST" id="quiz-form" novalidate>
                 {% csrf_token %}
                 
                 {% for q in quiz.questions %}
-                    <div class="glass-panel quiz-card">
+                    <div class="glass-panel quiz-card" id="quiz-card-{{ forloop.counter0 }}">
                         <span class="quiz-question-num">Question {{ forloop.counter }}</span>
                         <p class="quiz-question-text">{{ q.question }}</p>
                         
@@ -117,8 +117,7 @@
                                            name="question_{{ forloop.parentloop.counter0 }}" 
                                            id="q_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" 
                                            value="{{ option }}" 
-                                           class="quiz-option-input"
-                                           required>
+                                           class="quiz-option-input">
                                     <span>{{ option }}</span>
                                 </label>
                             {% endfor %}
@@ -126,7 +125,7 @@
                     </div>
                 {% endfor %}
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem; font-size: 1.1rem; box-shadow: 0 10px 25px -5px var(--primary-glow);">
+                <button type="submit" class="btn btn-primary" id="quiz-submit-btn" style="width: 100%; padding: 1rem; margin-top: 1rem; font-size: 1.1rem; box-shadow: 0 10px 25px -5px var(--primary-glow);">
                     Submit Quiz Answers 🎓🚀
                 </button>
             </form>
@@ -136,4 +135,62 @@
     </div>
 
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quizForm = document.getElementById('quiz-form');
+    if (!quizForm) return;
+
+    // Clear error highlight when an option is selected
+    const radioInputs = quizForm.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const card = this.closest('.quiz-card');
+            if (card) {
+                card.style.borderColor = '';
+                card.style.boxShadow = '';
+            }
+        });
+    });
+
+    quizForm.addEventListener('submit', function(e) {
+        const quizCards = quizForm.querySelectorAll('.quiz-card');
+        let allAnswered = true;
+        let firstUnansweredCard = null;
+
+        quizCards.forEach((card, index) => {
+            const checked = card.querySelector('input[type="radio"]:checked');
+            if (!checked) {
+                allAnswered = false;
+                card.style.borderColor = 'var(--error)';
+                card.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.3)';
+                ScholarValidator.shakeElement(card);
+                if (!firstUnansweredCard) {
+                    firstUnansweredCard = card;
+                }
+            } else {
+                card.style.borderColor = '';
+                card.style.boxShadow = '';
+            }
+        });
+
+        if (!allAnswered) {
+            e.preventDefault();
+            ScholarValidator.showToast('Please answer all questions before submitting the quiz.', 'warning');
+            if (firstUnansweredCard) {
+                firstUnansweredCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+
+        const submitBtn = document.getElementById('quiz-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Grading Quiz with AI... 🎓⚡';
+        }
+    });
+});
+</script>
 {% endblock %}

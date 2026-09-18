@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import { validateUsername, validateEmail, validatePassword } from '../utils/validation';
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -10,26 +11,51 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [academicLevel, setAcademicLevel] = useState('MCA Student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (!isOpen) return null;
+
+  const passStrength = validatePassword(password, 6);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Client-side JavaScript Validation
+    const userVal = validateUsername(username);
+    if (!userVal.isValid) {
+      setError(userVal.message);
+      return;
+    }
+
+    if (isRegister) {
+      const emailVal = validateEmail(email, true);
+      if (!emailVal.isValid) {
+        setError(emailVal.message);
+        return;
+      }
+    }
+
+    const passVal = validatePassword(password, 6);
+    if (!passVal.isValid) {
+      setError(passVal.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
       let user;
       if (isRegister) {
         user = await api.register({
-          username,
-          email,
+          username: username.trim(),
+          email: email.trim(),
           password,
-          research_interests: researchInterests,
+          research_interests: researchInterests.trim(),
           academic_level: academicLevel
         });
       } else {
-        user = await api.login(username, password);
+        user = await api.login(username.trim(), password);
       }
       onAuthSuccess(user);
       onClose();
@@ -57,11 +83,11 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
         {error && (
           <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#fda4af', marginBottom: '16px', fontSize: '0.85rem' }}>
-            {error}
+            ⚠️ {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px' }}>Username</label>
             <input
@@ -70,7 +96,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               style={{ width: '100%' }}
               required
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => { setUsername(e.target.value); setError(''); }}
               placeholder="e.g. rintathomas"
             />
           </div>
@@ -82,24 +108,52 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                 type="email"
                 className="glass-input"
                 style={{ width: '100%' }}
+                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(''); }}
                 placeholder="name@university.edu"
               />
             </div>
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px' }}>Password</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Password</label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '0.75rem', cursor: 'pointer' }}
+              >
+                {showPassword ? '🙈 Hide' : '👁️ Show'}
+              </button>
+            </div>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               className="glass-input"
               style={{ width: '100%' }}
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
               placeholder="••••••••"
             />
+
+            {/* Password Strength Indicator */}
+            {isRegister && password && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(100, Math.max(20, (passStrength.score / 6) * 100))}%`,
+                    height: '100%',
+                    background: passStrength.color,
+                    transition: 'all 0.3s ease'
+                  }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px' }}>
+                  <span>Password Strength</span>
+                  <strong style={{ color: passStrength.color }}>{passStrength.label}</strong>
+                </div>
+              </div>
+            )}
           </div>
 
           {isRegister && (
@@ -150,3 +204,4 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     </div>
   );
 }
+

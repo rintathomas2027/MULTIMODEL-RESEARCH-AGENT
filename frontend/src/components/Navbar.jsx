@@ -11,14 +11,14 @@ const PRESET_AVATARS = [
   { id: 'astro', label: 'Astrophysicist', icon: '🪐', color: 'linear-gradient(135deg, #f87171, #dc2626)' }
 ];
 
-export default function Navbar({ user, onOpenAuth, onOpenProfile, onOpenUpload, onLogout, search, setSearch }) {
+export default function Navbar({ user, onOpenAuth, onOpenProfile, onOpenUpload, onLogout, search, setSearch, showLandingPage, onToggleLanding }) {
   const profile = user?.profile || {};
   const avatarId = profile.avatar || 'technomancer';
   const currentAvatar = PRESET_AVATARS.find(av => av.id === avatarId) || PRESET_AVATARS[0];
 
   return (
     <nav className="navbar" style={{ borderBottom: '1px solid var(--border-gold)' }}>
-      <div className="brand-logo">
+      <div className="brand-logo" onClick={onToggleLanding} style={{ cursor: 'pointer' }} title="Go to Front Page">
         <div className="brand-icon" style={{ textShadow: '0 0 10px rgba(212,175,55,0.4)' }}>⚡</div>
         <div>
           <span style={{ fontWeight: 800, letterSpacing: '0.02em' }}>ScholarPulse</span>
@@ -26,7 +26,7 @@ export default function Navbar({ user, onOpenAuth, onOpenProfile, onOpenUpload, 
         </div>
       </div>
 
-      {user && (
+      {user && !showLandingPage && (
         <div style={{ flex: 1, maxWidth: '400px', margin: '0 32px' }}>
           <input
             type="text"
@@ -39,12 +39,20 @@ export default function Navbar({ user, onOpenAuth, onOpenProfile, onOpenUpload, 
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginLeft: 'auto' }}>
         {user ? (
           <>
-            <button className="btn-primary" onClick={onOpenUpload} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>📤</span> Upload Paper
-            </button>
+            {onToggleLanding && (
+              <button className="btn-secondary" onClick={onToggleLanding} style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                {showLandingPage ? '📚 Workspace' : '🏠 Front Page'}
+              </button>
+            )}
+
+            {!showLandingPage && (
+              <button className="btn-primary" onClick={onOpenUpload} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>📤</span> Upload Paper
+              </button>
+            )}
 
             <div
               style={{

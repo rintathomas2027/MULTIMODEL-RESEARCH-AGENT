@@ -1,8 +1,8 @@
 @echo off
-title Push 74 Commits to GitHub
+title Push Full Commit History to GitHub
 color 0A
 echo ========================================================
-echo AUTOMATED 74-COMMIT GENERATOR & PUSH SCRIPT
+echo AUTOMATED MULTI-COMMIT GENERATOR & PUSH SCRIPT
 echo Target Repo: https://github.com/rintathomas2027/MULTIMODEL-RESEARCH-AGENT.git
 echo ========================================================
 cd /d C:\AIStudyAssistant

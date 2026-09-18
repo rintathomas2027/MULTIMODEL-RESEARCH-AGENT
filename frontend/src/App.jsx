@@ -9,6 +9,7 @@ import { api } from './api';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [showLandingPage, setShowLandingPage] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [search, setSearch] = useState('');
@@ -20,14 +21,14 @@ export default function App() {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
-    // Check initial user from localStorage or fetch profile
-    const savedUser = localStorage.getItem('sp_user');
+    // Check initial user from sessionStorage
+    const savedUser = sessionStorage.getItem('sp_user');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
         loadDocuments();
       } catch (e) {
-        localStorage.removeItem('sp_user');
+        sessionStorage.removeItem('sp_user');
       }
     }
 
@@ -35,6 +36,7 @@ export default function App() {
       setUser(null);
       setDocuments([]);
       setSelectedDoc(null);
+      setShowLandingPage(true);
       setShowAuthModal(true);
     };
 
@@ -62,12 +64,14 @@ export default function App() {
 
   const handleAuthSuccess = (userData) => {
     setUser(userData);
+    setShowLandingPage(false);
     loadDocuments();
   };
 
   const handleLogout = () => {
     api.clearTokens();
     setUser(null);
+    setShowLandingPage(true);
     setDocuments([]);
     setSelectedDoc(null);
   };
@@ -95,6 +99,8 @@ export default function App() {
         user={user}
         search={search}
         setSearch={setSearch}
+        showLandingPage={showLandingPage}
+        onToggleLanding={() => { setShowLandingPage(prev => !prev); setSelectedDoc(null); }}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenProfile={() => setShowProfileModal(true)}
         onOpenUpload={() => setShowUploadModal(true)}
@@ -102,8 +108,8 @@ export default function App() {
       />
 
       <main className="main-content">
-        {!user ? (
-          /* Landing Screen when unauthenticated */
+        {!user || showLandingPage ? (
+          /* Landing Screen */
           <div className="glass-panel" style={{ padding: '64px 32px', textAlign: 'center', marginTop: '40px', maxWidth: '800px', margin: '40px auto 0 auto' }}>
             <div className="brand-icon" style={{ width: '64px', height: '64px', fontSize: '2rem', margin: '0 auto 20px auto' }}>⚡</div>
             <h1 style={{ fontSize: '2.4rem', fontWeight: 800, marginBottom: '14px', lineHeight: '1.2' }}>
@@ -120,9 +126,19 @@ export default function App() {
               <div className="badge badge-cyan" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>🎓 Viva Defense & Exam Prep</div>
             </div>
 
-            <button className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }} onClick={() => setShowAuthModal(true)}>
-              🚀 Get Started & Access Workspace
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
+              {user ? (
+                <button className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }} onClick={() => setShowLandingPage(false)}>
+                  ⚡ Continue to Workspace ({user.username}) →
+                </button>
+              ) : (
+                <>
+                  <button className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }} onClick={() => setShowAuthModal(true)}>
+                    🚀 Get Started & Access Workspace
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           /* Main Workspace View */
@@ -158,7 +174,7 @@ export default function App() {
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         user={user}
-        onUpdateUser={(updated) => setUser(updated)}
+        onUpdateUser={(updated) => { setUser(updated); sessionStorage.setItem('sp_user', JSON.stringify(updated)); }}
       />
 
       <UploadModal
