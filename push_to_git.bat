@@ -16,7 +16,7 @@ git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Bundle complete database, user accounts, papers, and restore full UI structure for cloud deployment"
+git commit -m "Fix 404 API URL routing for Vercel and synchronize auth endpoints"
 
 echo.
 echo [3/3] Pushing to origin main...

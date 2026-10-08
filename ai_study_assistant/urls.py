@@ -8,8 +8,12 @@ from assistant.views import FrontendAppView
 urlpatterns = [
     path('', FrontendAppView.as_view(), name='app_home'),
     path('admin/', admin.site.urls),
+    
+    # Support both with and without /api/ prefix for seamless Vercel serverless routing
     path('api/auth/', include('users.urls')),
     path('api/', include('assistant.urls')),
+    path('auth/', include('users.urls')),
+    path('', include('assistant.urls')),
 ]
 
 if settings.DEBUG:
