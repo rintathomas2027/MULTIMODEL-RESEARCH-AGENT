@@ -14,7 +14,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ai_study_assistant.settings')
-django.setup()
+from django.apps import apps
+if not apps.ready:
+    django.setup()
 
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
