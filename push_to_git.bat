@@ -16,7 +16,7 @@ git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Fix 404 API URL routing for Vercel and synchronize auth endpoints"
+git commit -m "Switch to modern Vercel Python Serverless rewrites to restore full original Django UI and backend APIs"
 
 echo.
 echo [3/3] Pushing to origin main...
