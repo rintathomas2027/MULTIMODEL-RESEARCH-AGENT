@@ -16,7 +16,7 @@ git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Switch to modern Vercel Python Serverless rewrites to restore full original Django UI and backend APIs"
+git commit -m "Ignore Vite prototype to enforce full Python Django ResearchSphere deployment on Vercel"
 
 echo.
 echo [3/3] Pushing to origin main...

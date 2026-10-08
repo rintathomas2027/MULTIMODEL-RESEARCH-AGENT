@@ -17,4 +17,4 @@ setup_environment.bat
 run_server.bat
 reports/
 *.pdf
-frontend/node_modules/
+frontend/
