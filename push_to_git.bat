@@ -16,7 +16,7 @@ git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Enable dynamic relative API routes for Vercel, auto-seeding, and 1-click demo guest access"
+git commit -m "Bundle complete database, user accounts, papers, and restore full UI structure for cloud deployment"
 
 echo.
 echo [3/3] Pushing to origin main...
