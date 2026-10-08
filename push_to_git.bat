@@ -8,13 +8,15 @@ echo Branch: main
 echo ========================================================
 cd /d C:\AIStudyAssistant
 
+if exist ".git\index.lock" del /f /q ".git\index.lock"
+
 echo.
 echo [1/3] Adding modified and new files...
 git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Add Selenium test automation framework (11 suites, 52 test cases), formal QA Testing Report, Interactive Dashboard, demo data seeder, and Project Preparation Guide"
+git commit -m "Configure Vercel serverless deployment (vercel.json, build_files.sh, WhiteNoise static handling, and tmp storage fallbacks)"
 
 echo.
 echo [3/3] Pushing to origin main...

@@ -145,18 +145,20 @@ def main():
         (["git add selenium_tests/test_suites/test_suite_11_command_hub_and_analytics.py"], "test(e2e): add TestSuite 11 for Ctrl+K Spotlight Hub, Gamified XP Tracking, and Feedback"),
         (["git add run_selenium_tests.py"], "test(runner): implement automated Selenium test runner with HTML, JSON, and MD report generators"),
 
-        # Formal Quality Assurance & Software Testing Reports (90-92)
+        # Formal Quality Assurance & Software Testing Reports (90-95)
         (["git add TESTING_REPORT.md"], "docs(qa): add comprehensive 52-Test-Case Software Testing & SQA Certification Report"),
         (["git add reports/interactive_test_report.html reports/"], "feat(dashboard): add interactive web-based Quality Assurance Testing Dashboard with live search and filters"),
+        (["git add PROJECT_REPORT.md reports/project_report.html"], "docs(academic): add comprehensive Academic Final Project Report Documentation (SRS, Architecture, DFD, ER, Modules)"),
+        (["git add reports/download_reports.html reports/combined_master_report.html download_all_pdfs.bat"], "feat(pdf): add 1-click Combined Master PDF Report generator and download portal"),
         (["git add seed_demo_data.py"], "feat(seed): add realistic research paper and vector embedding seeding script (Transformer, ResNet, QAOA, DDPM)"),
 
-        # Software Preparation & Deployment Tooling (93-100)
+        # Software Preparation & Deployment Tooling (96-103)
         (["git add PROJECT_PREPARATION_GUIDE.md"], "docs(prep): add Master Project Preparation, Deployment, Architecture & 20+ Viva Defense Guide"),
         (["git add setup_environment.bat"], "chore(launchers): add 1-click automated environment setup batch script"),
         (["git add run_server.bat"], "chore(launchers): add 1-click clean server launcher batch script"),
         (["git add run_selenium_tests.bat"], "chore(launchers): add 1-click Selenium test execution and report launcher script"),
         (["git add Start_ScholarPulse.bat"], "chore(scripts): update Start_ScholarPulse.bat launcher script"),
-        (["git add test.txt push.bat push_recommit_all.bat push_to_git.bat RUN_THIS_PUSH.bat"], "chore(scripts): add utility push batch scripts"),
+        (["git add test.txt push.bat push_recommit_all.bat push_to_git.bat RUN_THIS_PUSH.bat download_all_pdfs.bat"], "chore(scripts): add utility push and PDF download batch scripts"),
         (["git add README.md .env.example requirements.txt"], "docs: finalize project documentation, requirements, and environment templates"),
         (["git add ."], "chore(final): finalize repository state with 100+ distinct professional commits")
     ]

@@ -10,7 +10,10 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'chroma_db')
+if os.getenv('VERCEL', '0') == '1' or 'VERCEL_ENV' in os.environ:
+    CHROMA_DB_DIR = '/tmp/chroma_db'
+else:
+    CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'chroma_db')
 os.makedirs(CHROMA_DB_DIR, exist_ok=True)
 
 try:

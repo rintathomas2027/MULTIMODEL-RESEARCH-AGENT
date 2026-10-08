@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -132,15 +133,18 @@ if db_engine == 'mysql' and db_user and db_name:
     db_password = os.getenv('DB_PASSWORD', '')
     mysql_active = check_mysql_connection(db_host, db_port, db_user, db_name, db_password)
 
+is_vercel = os.getenv('VERCEL', '0') == '1' or 'VERCEL_ENV' in os.environ
+
 if not mysql_active or db_engine == 'sqlite':
+    db_file_path = Path('/tmp') / 'db.sqlite3' if is_vercel else BASE_DIR / 'db.sqlite3'
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': db_file_path,
         }
     }
     if db_engine == 'mysql' and not mysql_active:
-        print("WARNING: MySQL connection failed (unreachable or Access Denied). Automatically falling back to SQLite (db.sqlite3).")
+        print("WARNING: MySQL connection failed (unreachable or Access Denied). Automatically falling back to SQLite.")
 else:
     DATABASES = {
         'default': {
@@ -197,6 +201,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files like PDF notes)
 MEDIA_URL = '/media/'

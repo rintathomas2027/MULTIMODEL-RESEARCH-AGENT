@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScholarPulse AI Studio - Download All PDF Reports</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #08080b;
+      color: #f1f1f5;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(70, 80, 120, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    .glass-card {
+      background: rgba(18, 19, 25, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(212, 175, 55, 0.5);
+      box-shadow: 0 12px 40px rgba(212, 175, 55, 0.12);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 max-w-5xl mx-auto flex flex-col justify-center items-center space-y-8">
+
+  <!-- HEADER -->
+  <div class="text-center space-y-3 max-w-2xl">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/40 text-yellow-400 text-xs font-black tracking-widest uppercase">
+      ⚡ ScholarPulse AI Studio Documentation Portal
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
+      Download Project & Testing Reports (PDF)
+    </h1>
+    <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+      Download the official university-formatted <strong>Academic Final Project Report</strong>, the comprehensive <strong>Software Testing & SQA Report</strong>, or the <strong>Combined Master Package</strong> with one click.
+    </p>
+  </div>
+
+  <!-- DOWNLOAD CARDS GRID -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+
+    <!-- CARD 1: ACADEMIC PROJECT REPORT -->
+    <div class="glass-card p-6 flex flex-col justify-between border-yellow-500/30 space-y-5">
+      <div class="space-y-3">
+        <div class="w-12 h-12 rounded-xl bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 flex items-center justify-center text-2xl">
+          📖
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-yellow-400 font-mono">Academic Report</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-300">8 Chapters</span>
+        </div>
+        <h3 class="text-base font-extrabold text-white">Final Project Report</h3>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Includes Certificate of Originality, Declaration, Abstract, SRS, System Architecture, DFD, ER diagrams, 14 Module implementations, and IEEE References.
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-2 border-t border-slate-800">
+        <a 
+          href="project_report.html" 
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-yellow-500/20"
+        >
+          <span>⬇️</span> Download Project Report PDF
+        </a>
+        <a 
+          href="../PROJECT_REPORT.md" 
+          class="w-full py-2 px-3 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 hover:text-white"
+        >
+          <span>📄</span> View Markdown File
+        </a>
+      </div>
+    </div>
+
+    <!-- CARD 2: SOFTWARE TESTING REPORT -->
+    <div class="glass-card p-6 flex flex-col justify-between border-yellow-500/30 space-y-5">
+      <div class="space-y-3">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-2xl">
+          🧪
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono">Testing & QA</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">52 Test Cases</span>
+        </div>
+        <h3 class="text-base font-extrabold text-white">Software Testing Report</h3>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Contains Selenium Page Object Model (POM) test architecture, 11 automated test suites, 52 step-by-step test cases, bug resolution log, and 100% pass verification.
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-2 border-t border-slate-800">
+        <a 
+          href="interactive_test_report.html" 
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-black font-extrabold text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-emerald-500/20"
+        >
+          <span>⬇️</span> Download QA Report PDF
+        </a>
+        <a 
+          href="../TESTING_REPORT.md" 
+          class="w-full py-2 px-3 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 hover:text-white"
+        >
+          <span>📄</span> View Markdown File
+        </a>
+      </div>
+    </div>
+
+    <!-- CARD 3: COMBINED MASTER PACKAGE -->
+    <div class="glass-card p-6 flex flex-col justify-between border-yellow-400 space-y-5 bg-gradient-to-b from-yellow-500/5 to-obsidian-950">
+      <div class="space-y-3">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center text-2xl">
+          📑
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-yellow-400 font-mono">Combined Master</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-400 text-black font-black">All-in-One</span>
+        </div>
+        <h3 class="text-base font-extrabold text-white">Combined Master Report</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          The complete merged submission package: combines both the <strong>Academic Project Report</strong> and the <strong>Full 52-Case Testing Report</strong> into a single master PDF!
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-2 border-t border-yellow-500/30">
+        <a 
+          href="combined_master_report.html" 
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-black font-black text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-xl shadow-yellow-500/30"
+        >
+          <span>⬇️</span> Download Combined PDF
+        </a>
+        <a 
+          href="../PROJECT_PREPARATION_GUIDE.md" 
+          class="w-full py-2 px-3 rounded-xl bg-obsidian-900 border border-yellow-500/40 text-yellow-400 font-semibold text-xs flex items-center justify-center gap-1.5 hover:text-white"
+        >
+          <span>🎓</span> Viva Prep Cheat Sheet
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="text-center text-xs text-slate-500 font-mono pt-4">
+    ScholarPulse AI Studio • MCA Major Project Documentation & SQA Automation Suite
+  </div>
+
+</body>
+</html>
