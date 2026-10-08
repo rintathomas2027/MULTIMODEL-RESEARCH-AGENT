@@ -93,6 +93,19 @@ export default function App() {
     }
   };
 
+  const handleGuestAccess = () => {
+    const demoUser = {
+      id: 1,
+      username: 'MCA_Evaluator',
+      email: 'evaluator@scholarpulse.ai',
+      profile: { academic_level: 'MCA Student', avatar: 'technomancer' }
+    };
+    sessionStorage.setItem('sp_user', JSON.stringify(demoUser));
+    setUser(demoUser);
+    setShowLandingPage(false);
+    loadDocuments();
+  };
+
   return (
     <div className="app-container">
       <Navbar
@@ -126,15 +139,31 @@ export default function App() {
               <div className="badge badge-cyan" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>🎓 Viva Defense & Exam Prep</div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
               {user ? (
                 <button className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }} onClick={() => setShowLandingPage(false)}>
                   ⚡ Continue to Workspace ({user.username}) →
                 </button>
               ) : (
                 <>
-                  <button className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }} onClick={() => setShowAuthModal(true)}>
-                    🚀 Get Started & Access Workspace
+                  <button className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.05rem' }} onClick={() => setShowAuthModal(true)}>
+                    🚀 Get Started / Login & Register
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    style={{
+                      padding: '14px 28px',
+                      fontSize: '1.05rem',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#f8fafc',
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      fontWeight: 600
+                    }}
+                    onClick={handleGuestAccess}
+                  >
+                    ⚡ 1-Click Instant Guest Access
                   </button>
                 </>
               )}

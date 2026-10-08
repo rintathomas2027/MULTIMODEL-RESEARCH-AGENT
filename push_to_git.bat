@@ -16,7 +16,7 @@ git add .
 
 echo.
 echo [2/3] Committing changes...
-git commit -m "Configure Vercel serverless deployment (vercel.json, build_files.sh, WhiteNoise static handling, and tmp storage fallbacks)"
+git commit -m "Enable dynamic relative API routes for Vercel, auto-seeding, and 1-click demo guest access"
 
 echo.
 echo [3/3] Pushing to origin main...

@@ -88,6 +88,31 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
         )}
 
         <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {!isRegister && (
+            <button
+              type="button"
+              onClick={() => {
+                setUsername('MCA_Evaluator');
+                setPassword('Research@2026');
+                setError('');
+              }}
+              style={{
+                background: 'rgba(99, 102, 241, 0.12)',
+                border: '1px dashed rgba(99, 102, 241, 0.4)',
+                color: '#a5b4fc',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: 'center',
+                fontWeight: 600
+              }}
+            >
+              ⚡ Fill Demo Credentials (MCA_Evaluator)
+            </button>
+          )}
+
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px' }}>Username</label>
             <input

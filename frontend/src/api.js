@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = typeof window !== 'undefined' && (window.location.port === '3000' || window.location.port === '5173')
+  ? 'http://127.0.0.1:8000/api'
+  : '/api';
 
 class ApiClient {
   getAccessToken() {
