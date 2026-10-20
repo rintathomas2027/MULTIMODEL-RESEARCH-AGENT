@@ -25,17 +25,27 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 app = application
 
-# Run migrations and auto-seed if needed
+# Run migrations safely and restore data if database is fresh
 try:
     from django.core.management import call_command
     call_command('migrate', interactive=False)
     
     from assistant.models import Document
     if Document.objects.count() == 0:
-        try:
-            import seed_demo_data
-            seed_demo_data.seed()
-        except Exception as seed_err:
-            print(f"Auto-seed note: {seed_err}")
+        data_dump_file = BASE_DIR / 'data_dump.json'
+        if data_dump_file.exists():
+            try:
+                call_command('loaddata', str(data_dump_file))
+                print("Restored existing database from data_dump.json successfully")
+            except Exception as load_err:
+                print(f"loaddata note: {load_err}")
+
+        # If still 0 (e.g. data_dump was not present), seed default demo papers
+        if Document.objects.count() == 0:
+            try:
+                import seed_demo_data
+                seed_demo_data.seed()
+            except Exception as seed_err:
+                print(f"Auto-seed note: {seed_err}")
 except Exception as e:
     print(f"Startup init note: {e}")

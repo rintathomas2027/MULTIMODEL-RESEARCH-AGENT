@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: scholarpulse-backend
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ai_study_assistant.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DB_ENGINE
+        value: sqlite
+      - key: GEMINI_API_KEY
+        sync: false

@@ -19,6 +19,26 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+# Render & Cross-Origin CSRF configuration
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()])
+
 
 # Application definition
 
@@ -96,70 +116,86 @@ WSGI_APPLICATION = 'ai_study_assistant.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-db_engine = os.getenv('DB_ENGINE', 'mysql').lower()
-db_user = os.getenv('DB_USER', '')
-db_name = os.getenv('DB_NAME', '')
-db_host = os.getenv('DB_HOST', 'localhost')
-db_port = os.getenv('DB_PORT', '3306')
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    except Exception as db_url_err:
+        print(f"dj_database_url note: {db_url_err}")
+        DATABASE_URL = None
 
-has_pymysql = False
-try:
-    import pymysql
-    has_pymysql = True
-except ImportError:
-    pass
+if not DATABASE_URL:
+    db_engine = os.getenv('DB_ENGINE', 'sqlite').lower()
+    db_user = os.getenv('DB_USER', '')
+    db_name = os.getenv('DB_NAME', '')
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_port = os.getenv('DB_PORT', '3306')
 
-# Dynamic check to see if we can establish a valid MySQL connection
-def check_mysql_connection(host, port, user, name, password):
-    if not has_pymysql:
-        return False
+    has_pymysql = False
     try:
         import pymysql
-        conn = pymysql.connect(
-            host=host,
-            port=int(port),
-            user=user,
-            password=password,
-            database=name,
-            connect_timeout=1
-        )
-        conn.close()
-        return True
-    except Exception as e:
-        return False
+        has_pymysql = True
+    except ImportError:
+        pass
 
-mysql_active = False
-if db_engine == 'mysql' and db_user and db_name:
-    db_password = os.getenv('DB_PASSWORD', '')
-    mysql_active = check_mysql_connection(db_host, db_port, db_user, db_name, db_password)
+    # Dynamic check to see if we can establish a valid MySQL connection
+    def check_mysql_connection(host, port, user, name, password):
+        if not has_pymysql:
+            return False
+        try:
+            import pymysql
+            conn = pymysql.connect(
+                host=host,
+                port=int(port),
+                user=user,
+                password=password,
+                database=name,
+                connect_timeout=1
+            )
+            conn.close()
+            return True
+        except Exception as e:
+            return False
 
-is_vercel = os.getenv('VERCEL', '0') == '1' or 'VERCEL_ENV' in os.environ
+    mysql_active = False
+    if db_engine == 'mysql' and db_user and db_name:
+        db_password = os.getenv('DB_PASSWORD', '')
+        mysql_active = check_mysql_connection(db_host, db_port, db_user, db_name, db_password)
 
-if not mysql_active or db_engine == 'sqlite':
-    db_file_path = Path('/tmp') / 'db.sqlite3' if is_vercel else BASE_DIR / 'db.sqlite3'
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': db_file_path,
-        }
-    }
-    if db_engine == 'mysql' and not mysql_active:
-        print("WARNING: MySQL connection failed (unreachable or Access Denied). Automatically falling back to SQLite.")
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': db_name,
-            'USER': db_user,
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': db_host,
-            'PORT': db_port,
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-                'charset': 'utf8mb4',
+    is_vercel = os.getenv('VERCEL', '0') == '1' or 'VERCEL_ENV' in os.environ
+
+    if not mysql_active or db_engine == 'sqlite':
+        db_file_path = Path('/tmp') / 'db.sqlite3' if is_vercel else BASE_DIR / 'db.sqlite3'
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': db_file_path,
             }
         }
-    }
+        if db_engine == 'mysql' and not mysql_active:
+            print("WARNING: MySQL connection failed (unreachable or Access Denied). Automatically falling back to SQLite.")
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': db_name,
+                'USER': db_user,
+                'PASSWORD': os.getenv('DB_PASSWORD', ''),
+                'HOST': db_host,
+                'PORT': db_port,
+                'OPTIONS': {
+                    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                    'charset': 'utf8mb4',
+                }
+            }
+        }
 
 
 # Password validation
@@ -201,7 +237,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files (Uploaded files like PDF notes)
 MEDIA_URL = '/media/'
