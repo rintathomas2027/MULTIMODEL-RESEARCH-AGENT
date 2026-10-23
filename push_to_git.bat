@@ -24,7 +24,7 @@ git add .
 
 echo.
 echo [Step 3/4] Committing changes...
-git commit -m "Configure production backend deployment for Render with zero data loss"
+git commit -m "Fix in-app Back navigation to prevent leaving site and preserve all features"
 
 echo.
 echo [Step 4/4] Pushing to origin main...

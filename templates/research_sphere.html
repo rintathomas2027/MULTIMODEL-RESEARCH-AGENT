@@ -333,27 +333,68 @@
         }
       }, []);
 
-      // Browser History & URL Hash Sync
+      // Browser History & In-App Navigation Sync
+      const openDocStudio = (doc, tab = 'chat') => {
+        if (!doc) return;
+        setSelectedDoc(doc);
+        if (tab) setActiveTab(tab);
+        try {
+          window.history.pushState({ view: 'doc', docId: doc.id, tab }, '', `#doc-${doc.id}`);
+        } catch(e) {}
+      };
+
+      const closeDocStudio = () => {
+        setSelectedDoc(null);
+        try {
+          if (window.location.hash.startsWith('#doc-')) {
+            window.history.back();
+          } else {
+            window.location.hash = '#workspace';
+          }
+        } catch(e) {
+          setSelectedDoc(null);
+        }
+      };
+
       useEffect(() => {
-        const handleHashChange = () => {
+        const handleNavChange = () => {
+          // 1. If any modal is open, close modal first so Back button acts as modal close
+          if (showCrossMatrixModal || showUpload || showExternalResolver || showAnalyticsModal || showFeedbackModal || showAuth || showGuide || showCommandHub || showProfile) {
+            setShowCrossMatrixModal(false);
+            setShowUpload(false);
+            setShowExternalResolver(false);
+            setShowAnalyticsModal(false);
+            setShowFeedbackModal(false);
+            setShowAuth(false);
+            setShowGuide(false);
+            setShowCommandHub(false);
+            setShowProfile(false);
+            return;
+          }
+
           const hash = window.location.hash;
-          if (hash === '#workspace') {
-            setShowLandingPage(false);
-            setSelectedDoc(null);
-          } else if (hash.startsWith('#doc-')) {
+          if (hash.startsWith('#doc-')) {
             setShowLandingPage(false);
             const docId = parseInt(hash.replace('#doc-', ''), 10);
             const found = documents.find(d => d.id === docId);
             if (found) setSelectedDoc(found);
-          } else if (hash === '#home' || hash === '' || hash === '#') {
+          } else if (hash === '#workspace') {
+            setShowLandingPage(false);
+            setSelectedDoc(null);
+          } else {
+            // #home or empty
             setShowLandingPage(true);
             setSelectedDoc(null);
           }
         };
 
-        window.addEventListener('hashchange', handleHashChange);
-        return () => window.removeEventListener('hashchange', handleHashChange);
-      }, [documents]);
+        window.addEventListener('popstate', handleNavChange);
+        window.addEventListener('hashchange', handleNavChange);
+        return () => {
+          window.removeEventListener('popstate', handleNavChange);
+          window.removeEventListener('hashchange', handleNavChange);
+        };
+      }, [documents, showCrossMatrixModal, showUpload, showExternalResolver, showAnalyticsModal, showFeedbackModal, showAuth, showGuide, showCommandHub, showProfile]);
 
       const enterWorkspaceAsGuest = (notify = true) => {
         const guestUser = {
@@ -365,6 +406,9 @@
         sessionStorage.setItem('sp_user', JSON.stringify(guestUser));
         setUser(guestUser);
         setShowLandingPage(false);
+        try {
+          window.history.pushState({ view: 'workspace' }, '', '#workspace');
+        } catch(e) {}
         fetchDocs();
         if (notify) {
           awardXP(50, 'Research Studio Activated', 'Entered 1-Click Guest Researcher Studio with all 14 modules unlocked.', '⚡');
@@ -374,6 +418,9 @@
       const handleEnterWorkspace = () => {
         if (user) {
           setShowLandingPage(false);
+          try {
+            window.history.pushState({ view: 'workspace' }, '', '#workspace');
+          } catch(e) {}
         } else {
           enterWorkspaceAsGuest(true);
         }
@@ -677,8 +724,9 @@
                       if (!user) enterWorkspaceAsGuest(false);
                       setShowLandingPage(false);
                       if (documents.length > 0) {
-                        setSelectedDoc(documents[0]);
-                        setActiveTab('citations');
+                        openDocStudio(documents[0], 'citations');
+                      } else {
+                        handleEnterWorkspace();
                       }
                     }}
                     className="glass-card p-6 border-gold-500/30 cursor-pointer hover:scale-105 transition-all group"
@@ -717,8 +765,9 @@
                       if (!user) enterWorkspaceAsGuest(false);
                       setShowLandingPage(false);
                       if (documents.length > 0) {
-                        setSelectedDoc(documents[0]);
-                        setActiveTab('scholarcast');
+                        openDocStudio(documents[0], 'scholarcast');
+                      } else {
+                        handleEnterWorkspace();
                       }
                     }}
                     className="glass-card p-6 border-gold-500/30 cursor-pointer hover:scale-105 transition-all group"
@@ -837,7 +886,7 @@
                       return (
                         <div 
                           key={doc.id} 
-                          onClick={() => setSelectedDoc(doc)}
+                          onClick={() => openDocStudio(doc, 'chat')}
                           className={`glass-card p-5 cursor-pointer flex flex-col justify-between min-h-[190px] group relative ${isSelected ? 'ring-2 ring-gold-500 border-gold-400 bg-gold-500/5' : ''}`}
                         >
                           {/* TOP BAR */}
@@ -864,56 +913,56 @@
                             {/* QUICK ACTION FEATURE CHIPS ON EVERY CARD */}
                             <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-slate-700/40">
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('chat'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'chat'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="RAG Chat & Abstract"
                               >
                                 💬 Chat
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('citations'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'citations'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="Mendeley Citations & BibTeX"
                               >
                                 🎓 Cite
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('scholarcast'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'scholarcast'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="ScholarCast Audio Podcast"
                               >
                                 🎙️ Audio
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('roast'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'roast'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-rose-500/20 hover:border-rose-400 hover:bg-rose-500/20 text-[10px] font-bold text-slate-300 hover:text-rose-300 transition-all flex items-center justify-center gap-1"
                                 title="Reviewer #2 Critical Roast"
                               >
                                 ⚔️ Roast
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('formula'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'formula'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="Formula & Math to Code"
                               >
                                 🧮 Code
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('explain'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'explain'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="4-Level Explain Mode"
                               >
                                 ⭐ Explain
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('presentation'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'presentation'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="Presentation Slide Generator"
                               >
                                 📊 Slides
                               </button>
                               <button 
-                                onClick={(e) => { e.stopPropagation(); setSelectedDoc(doc); setActiveTab('viva'); }}
+                                onClick={(e) => { e.stopPropagation(); openDocStudio(doc, 'viva'); }}
                                 className="px-1.5 py-1 rounded-lg bg-obsidian-900 border border-gold-500/20 hover:border-gold-400 hover:bg-gold-500/20 text-[10px] font-bold text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center gap-1"
                                 title="University Viva & Defense Prep"
                               >
@@ -953,7 +1002,7 @@
                 <div className="glass-card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex items-center gap-3">
                     <button 
-                      onClick={() => setSelectedDoc(null)} 
+                      onClick={closeDocStudio} 
                       className="px-3 py-1.5 rounded-xl bg-obsidian-800 border border-gold-500/30 text-gold-400 text-xs font-semibold hover:border-gold-400 transition-all flex items-center gap-1"
                     >
                       ← Back
